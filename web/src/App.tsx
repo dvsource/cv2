@@ -47,6 +47,7 @@ interface CvData {
   experience: Experience[];
   projects: Project[];
   education: Education[];
+  interests: string[];
 }
 
 interface VersionSummary {
@@ -250,6 +251,7 @@ function App() {
       fetch("/api/cv").then((r) => r.json()),
       fetch("/api/versions").then((r) => r.json()),
     ]).then(([cvData, versionList]) => {
+      if (!Array.isArray(cvData.interests)) cvData.interests = [];
       setData(cvData);
       setVersions(versionList);
       if (versionList.length > 0) setActiveVersionId(versionList[0].id);
@@ -331,19 +333,28 @@ function App() {
     }
   };
 
-  const save = async () => {
+  const download = async () => {
+    setLoading(true);
     try {
-      const res = await fetch("/api/cv", {
-        method: "PUT",
+      const res = await fetch("/api/generate", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Save failed");
-      setUnsaved(false);
-      showToast("CV saved successfully", "success");
+      if (!res.ok) throw new Error("Generation failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${data?.contact.name || "cv"}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("PDF downloaded", "success");
       refreshVersions();
     } catch {
-      showToast("Failed to save CV", "error");
+      showToast("Failed to download PDF", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -352,6 +363,7 @@ function App() {
       const res = await fetch(`/api/versions/${id}`);
       if (!res.ok) throw new Error("Fetch failed");
       const version = await res.json();
+      if (!Array.isArray(version.data.interests)) version.data.interests = [];
       setData(version.data);
       setActiveVersionId(id);
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
@@ -439,7 +451,8 @@ function App() {
             {loading ? "Generating..." : "Generate PDF"}
           </button>
           <button
-            onClick={save}
+            onClick={download}
+            disabled={loading}
             className="flex items-center gap-1.5 px-4 py-1.5 text-sm bg-white text-[#1b2a4a] font-medium rounded-md hover:bg-gray-100 transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
           >
             <SaveIcon />
@@ -882,6 +895,50 @@ function App() {
               }
             >
               <span className="text-lg leading-none">+</span> Add Education
+            </button>
+          </Section>
+
+          {/* Interests */}
+          <Section
+            title="Interests"
+            count={data.interests.length}
+            open={isOpen("interests")}
+            onToggle={() => toggleSection("interests")}
+          >
+            {data.interests.map((item, ii) => (
+              <div key={ii} className="flex gap-2 items-center mb-3">
+                <input
+                  className={`flex-1 ${inputClasses}`}
+                  placeholder="Interest"
+                  value={item}
+                  onChange={(e) =>
+                    update((d) => {
+                      d.interests[ii] = e.target.value;
+                    })
+                  }
+                />
+                <button
+                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors duration-150 cursor-pointer shrink-0"
+                  onClick={() =>
+                    update((d) => {
+                      d.interests.splice(ii, 1);
+                    })
+                  }
+                  title="Remove interest"
+                >
+                  <TrashIcon />
+                </button>
+              </div>
+            ))}
+            <button
+              className={addBtnClasses}
+              onClick={() =>
+                update((d) => {
+                  d.interests.push("");
+                })
+              }
+            >
+              <span className="text-lg leading-none">+</span> Add Interest
             </button>
           </Section>
         </div>

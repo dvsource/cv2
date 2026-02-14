@@ -386,6 +386,20 @@ def build_education(education: list, styles: dict, content_width: float) -> list
     return items
 
 
+def build_interests(interests: list, styles: dict) -> list:
+    """Build the interests section."""
+    items = section_header("Interests", styles)
+
+    for interest in interests:
+        text = interest.strip() if isinstance(interest, str) else str(interest)
+        if text:
+            items.append(
+                Paragraph(f"\xb7{NBSP * 2}{esc(text)}", styles["bullet"])
+            )
+
+    return items
+
+
 # ── Main ───────────────────────────────────────────────────────
 
 
@@ -418,6 +432,11 @@ def build_pdf(data: dict, output_path: str):
 
     # Education
     story.extend(build_education(data.get("education", []), styles, content_width))
+
+    # Interests
+    interests = data.get("interests", [])
+    if interests:
+        story.extend(build_interests(interests, styles))
 
     doc = BaseDocTemplate(
         output_path,

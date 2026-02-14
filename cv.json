@@ -1,29 +1,41 @@
 {
   "contact": {
-    "name": "Viraj Kaushalye",
     "email": "virajkaushalye1@gmail.com",
-    "phone": "+94711252032",
-    "linkedin": "linkedin/in/dvsource",
     "github": "github.com/dvsource",
+    "linkedin": "linkedin/in/dvsource",
+    "name": "Viraj Kaushalye",
+    "phone": "+94 711 25 20 32",
     "website": "v4k8.dev"
   },
-  "summary": "Software developer with hands-on experience in coding, automation, and building scalable systems from scratch. Strong interest in exploring open-source codebases to understand system design and apply proven engineering patterns. Experienced in leveraging modern AI tools and emerging AI technologies to improve development workflows and productivity. Continuous learner with a focus on code quality, automation, and maintainable software.",
-  "skills": [
-    { "label": "Languages", "items": ["Java", "C#", "Python", "PHP", "Javascript/Typescript", "Go", "Rust"] },
-    { "label": "Frontend", "items": ["Angular", "React"] },
-    { "label": "Backend", "items": ["Spring Boot", "Node.js", "Django"] },
-    { "label": "Fullstack", "items": ["Nextjs"] },
-    { "label": "DevOps & Cloud", "items": ["Docker", "Kubernetes", "AWS", "Azure", "Terraform", "Github Actions", "Jenkins"] },
-    { "label": "Databases", "items": ["MySQL", "Postgres", "MongoDB", "Redis", "Elasticsearch", "Kafka"] }
+  "education": [
+    {
+      "degree": "Bachelor of Science, Computer Science",
+      "focus": [
+        "Mathematics",
+        "Computer Science",
+        "Statistics"
+      ],
+      "institution": "University of Sri Jayewardenepura",
+      "period": "2015 - 2018"
+    },
+    {
+      "focus": [
+        "G.C.E A/L - Mathematics",
+        "Physics",
+        "Chemistry"
+      ],
+      "institution": "D. S. Senanayake Collage",
+      "period": "2006 - 2014"
+    }
   ],
   "experience": [
     {
       "company": "Matific - Sri Lanka",
       "roles": [
         {
-          "title": "Senior Software Engineer",
+          "description": "Built data-intensive activity pages, advanced filtering systems, reporting modules, and core admin tools using Angular and Django, optimizing performance for large datasets. (Matific - Teacher Site)\nDeveloped serverless microservices with AWS Lambda and a Rust PoC for high-performance computation, reducing operational costs.\nIncreased unit test coverage to 90%+, enhancing reliability and regression safety.\nWorking with global cross-teams (Mobile, Unity, Content, ML/AI, Support) to resolve production issues and improve integration.\nContributed to company-wide UI component migration, improving consistency and maintainability.\nDelivered an Accessibility-compliant product version under tight deadlines for European and North American markets.\nBuilding a RAG-based AI agent using LangChain to support backend to troubleshoot customer claims without developer intervention.",
           "period": "2022 - 2026",
-          "description": "Worked on core feature development for an education domain platform, including UI migrations, performance improvements, report generation, and AWS (Lambda) microservices development. I also built a RAG-based AI agent to support customer support personnel in understanding backend code logic and helping them troubleshoot problems without going through developers."
+          "title": "Senior Software Engineer"
         }
       ]
     },
@@ -31,59 +43,81 @@
       "company": "Codegen International",
       "roles": [
         {
-          "title": "Senior Software Engineer",
+          "description": "Developed and maintained core functionality for the company’s B2B web platform, prioritizing performance, reliability, and usability.\nBuilt Angular-based WordPress widgets, migrated components to Web Elements, and deployed scalable Docker-Kubernetes infrastructure with NGINX.\nMentored junior developers, conducted productivity workshops, and hosted ongoing developer forums to enhance team learning.",
+          "pageBreakAfter": true,
           "period": "2020 - 2022",
-          "description": "I worked on building Angular standalone widgets for WordPress sites. Contributed to the company's core FE framework to improve usability & accessibility features."
+          "title": "Senior Software Engineer"
         },
         {
-          "title": "Software Engineer",
+          "description": "Migrated Angular 7 applications to Angular 9; contributed to front-end modules for B2B travel functionalities (Supplier, Insurance, Generic).\nDeveloped internal project management tools integrating Jira and GitLab APIs; built reporting modules for management insights.\nImproved B2C travel platform (FlyDubai) booking flows and UI performance.",
+          "pageBreakAfter": false,
           "period": "2019 - 2020",
-          "description": "I worked on a Project Management Tool, contributing to features such as Jira and GitLab integration, building statistical views, and report generation. I was also involved in migrating a travel-domain Java Swing application to a full-featured Angular web application."
+          "title": "Software Engineer"
         },
         {
-          "title": "Trainee Software Engineer",
+          "description": "Developed a full-stack Leave Management system for the enterprise social network (Kriyo.net).\nContributed to chatbot features, reporting modules, bug fixes, and overall application improvements.",
           "period": "2019",
-          "description": "I worked on an Enterprise Social Network project, contributing to features such as leave and attendance, a chatbot, and reporting. Also bug fixes, and overall application improvements."
+          "title": "Trainee Software Engineer"
         }
       ]
     }
   ],
+  "interests": [
+    "Learning Rust and explore system programming with it",
+    "Contributing to open source projects",
+    "Running Local LLMs and experimenting with them",
+    "Reading technical books mostly about system design and solution architecture ",
+    "Building more productivity tools, CLIs, TUIs"
+  ],
   "projects": [
     {
-      "name": "RAG based Knowledge based Assistant",
-      "description": "Project I solely responsible at Matific"
+      "description": "An R&D project I developed at Matific. It is an AI-powered assistant designed to help support staff understand the logic behind product functionalities without needing to consult developers, especially when handling new or complex customer issues.\n\nBuilt using LangChain, a vector database, text embeddings, and OpenAI LLMs.",
+      "name": "RAG based Knowledge based Assistant"
     },
     {
-      "name": "A/L Physics Teacher Assistant + Class Scheduler",
-      "description": "Project I built for my Wife, who is a teacher for Physics"
+      "description": "A project I built for my wife. It is a collection of tools designed to support her day-to-day work at school and private classes.\n\nThe system includes AI-powered features to assist with her teaching career, such as generating new Physics problem ideas, simplifying complex concepts, and helping create structured lesson plans and schedules.",
+      "name": "A/L Physics Teacher Assistant + Class Scheduler"
     },
     {
-      "name": "Personal Life Management System",
-      "description": "v4k8.dev"
+      "description": "My personal website and portfolio combined with a comprehensive life management toolkit.\n\nIt includes tools for task management, time management, habit tracking, finance and expense tracking, and TBR tracking. The system also features a CLI tool that allows me to insert and retrieve data directly from the terminal without interrupting my workflow.",
+      "name": "Personal Life Management System"
     },
     {
-      "name": "AR - based Indoor Navigation Guide",
-      "description": "University Project"
-    },
-    {
-      "name": "Travel Buddy, Haven Heart, System-Tray Note-Taking App",
-      "description": "Projects I made for friends"
+      "description": "The final year University project - An augmented reality project built with Unity and iOS ARKit.\n\nThe application was designed to help visitors navigate large buildings by providing real-time, AR-based indoor guidance and directional assistance.",
+      "name": "AR - based Indoor Navigation Guide"
     }
   ],
-  "education": [
+  "skills": [
     {
-      "institution": "University of Sri Jayewardenepura",
-      "degree": "Bachelor of Science, Computer Science",
-      "period": "2015 - 2018",
-      "focus": ["Mathematics", "Computer Science", "Statistics"]
+      "items": "Java, Javascript/Typescript, C#, Python, PHP, Go, Rust",
+      "label": "Languages"
     },
     {
-      "institution": "D. S. Senanayake Collage",
-      "period": "2006 - 2014",
-      "focus": ["G.C.E A/L - Mathematics", "Physics", "Chemistry"]
+      "items": "Angular, React, Tailwind, SCSS",
+      "label": "Frontend"
+    },
+    {
+      "items": "Spring Boot, Node.js, Django, Flask",
+      "label": "Backend"
+    },
+    {
+      "items": [
+        "Nextjs"
+      ],
+      "label": "Fullstack"
+    },
+    {
+      "items": "Docker, Kubernetes, AWS, Jenkins",
+      "label": "CICD & Cloud"
+    },
+    {
+      "items": "MySQL, Postgres, MongoDB, Redis, Elasticsearch",
+      "label": "Databases"
+    },
+    {
+      "items": "Unity, Tauri, Electron, React Native, Bash, Linux",
+      "label": "Other"
     }
   ],
-  "interests": {
-    "reading": ["Fiction", "Non-Fiction", "Technical books"]
-  }
+  "summary": "Software developer focused on building clean, maintainable, and scalable systems across the full stack. Strong interest in distributed systems, system architecture, and designing reliable software from frontend to backend. Passionate about exploring open-source projects to understand engineering patterns and architectural trade-offs.\nCommitted to efficiency, reliability, and automation, with a strong focus on improving developer productivity and long-term maintainability. Hands-on experience with modern AI technologies, including agent-based systems, MCP and RAG implementations, applying them to rapidly evolving development workflows."
 }

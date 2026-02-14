@@ -47,6 +47,7 @@ def save_cv():
 @app.post("/api/generate")
 def generate():
     data = request.get_json()
+    CV_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
     save_version(data, "generate")
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
         build_pdf(data, tmp.name)
