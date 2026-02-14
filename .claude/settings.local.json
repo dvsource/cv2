@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(python -m venv:*)",
-      "Bash(.venv/bin/pip install:*)"
+      "Bash(.venv/bin/pip install:*)",
+      "Bash(/home/vfourkeight/Work/dvsource/jobhunting2026/apps/cv2/.venv/bin/python:*)"
     ]
   }
 }

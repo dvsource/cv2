@@ -160,7 +160,6 @@ def make_styles() -> dict:
         fontSize=9.5,
         leading=13.5,
         textColor=COLOR_TEXT,
-        leftIndent=10,
     )
 
     s["proj_name"] = ParagraphStyle(
@@ -190,7 +189,7 @@ def make_styles() -> dict:
     s["edu_date"] = ParagraphStyle(
         "edu_date",
         fontName="NotoSans",
-        fontSize=9.5,
+        fontSize=10,
         leading=14,
         textColor=COLOR_TEXT,
         alignment=TA_RIGHT,
@@ -270,14 +269,16 @@ def build_experience(experience: list, styles: dict, content_width: float) -> li
 
             t = Table(
                 [[title_p, date_p]],
-                colWidths=[content_width * 0.73, content_width * 0.27],
+                colWidths=[content_width * 0.80, content_width * 0.20],
+                hAlign="LEFT",
             )
             t.setStyle(
                 TableStyle([
                     ("VALIGN", (0, 0), (-1, -1), "TOP"),
                     ("LEFTPADDING", (0, 0), (-1, -1), 0),
                     ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                    ("TOPPADDING", (0, 0), (0, 0), 0),
+                    ("TOPPADDING", (1, 0), (1, 0), 1),
                     ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
                 ])
             )
@@ -328,7 +329,7 @@ def build_education(education: list, styles: dict, content_width: float) -> list
         focus = edu.get("focus", [])
 
         if degree:
-            main_text = f"<b>{degree}</b> \u2014 {institution}"
+            main_text = f"<b>{degree}</b>"
         else:
             main_text = f"<b>{institution}</b>"
 
@@ -337,7 +338,8 @@ def build_education(education: list, styles: dict, content_width: float) -> list
 
         t = Table(
             [[main_p, date_p]],
-            colWidths=[content_width * 0.73, content_width * 0.27],
+            colWidths=[content_width * 0.80, content_width * 0.20],
+            hAlign="LEFT",
         )
         t.setStyle(
             TableStyle([
@@ -349,6 +351,9 @@ def build_education(education: list, styles: dict, content_width: float) -> list
             ])
         )
         items.append(t)
+
+        if degree:
+            items.append(Paragraph(institution, styles["body"]))
 
         if focus:
             items.append(
