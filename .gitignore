@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.ruff_cache/
+
+# Node / Frontend
+node_modules/
+web/dist/
+
+# Generated PDFs
+*.pdf
+
+# Editor
+.vscode/
+.idea/
+*.sw?
+.DS_Store
+
+# Misc
+*.png
+*.local
