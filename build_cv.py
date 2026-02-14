@@ -314,6 +314,9 @@ def build_experience(experience: list, styles: dict, content_width: float) -> li
 
             items.append(Spacer(1, 2.5 * mm))
 
+            if role.get("pageBreakAfter"):
+                items.append(PageBreak())
+
         if exp.get("pageBreakAfter"):
             items.append(PageBreak())
 
