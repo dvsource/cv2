@@ -35,7 +35,9 @@ FONT_DIR = "/usr/share/fonts/noto"
 pdfmetrics.registerFont(TTFont("NotoSans", f"{FONT_DIR}/NotoSans-Regular.ttf"))
 pdfmetrics.registerFont(TTFont("NotoSans-Bold", f"{FONT_DIR}/NotoSans-Bold.ttf"))
 pdfmetrics.registerFont(TTFont("NotoSans-Italic", f"{FONT_DIR}/NotoSans-Italic.ttf"))
-pdfmetrics.registerFont(TTFont("NotoSans-BoldItalic", f"{FONT_DIR}/NotoSans-BoldItalic.ttf"))
+pdfmetrics.registerFont(
+    TTFont("NotoSans-BoldItalic", f"{FONT_DIR}/NotoSans-BoldItalic.ttf")
+)
 
 pdfmetrics.registerFontFamily(
     "NotoSans",
@@ -148,7 +150,7 @@ def make_styles() -> dict:
     s["exp_date"] = ParagraphStyle(
         "exp_date",
         fontName="NotoSans",
-        fontSize=10.5,
+        fontSize=9.5,
         leading=14,
         textColor=COLOR_TEXT,
         alignment=TA_RIGHT,
@@ -245,9 +247,7 @@ def build_skills(skills: dict, styles: dict) -> list:
         vals = skills.get(key)
         if vals:
             escaped_vals = ", ".join(esc(v) for v in vals)
-            items.append(
-                Paragraph(f"<b>{label}:</b> {escaped_vals}", styles["body"])
-            )
+            items.append(Paragraph(f"<b>{label}:</b> {escaped_vals}", styles["body"]))
 
     return items
 
@@ -262,9 +262,7 @@ def build_experience(experience: list, styles: dict, content_width: float) -> li
             title = esc(role["title"])
             period = esc(role.get("period", ""))
 
-            title_p = Paragraph(
-                f"<b>{company} \u2014 {title}</b>", styles["exp_title"]
-            )
+            title_p = Paragraph(f"<b>{company} \u2014 {title}</b>", styles["exp_title"])
             date_p = Paragraph(period, styles["exp_date"])
 
             t = Table(
@@ -273,14 +271,16 @@ def build_experience(experience: list, styles: dict, content_width: float) -> li
                 hAlign="LEFT",
             )
             t.setStyle(
-                TableStyle([
-                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                    ("TOPPADDING", (0, 0), (0, 0), 0),
-                    ("TOPPADDING", (1, 0), (1, 0), 1),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
-                ])
+                TableStyle(
+                    [
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                        ("TOPPADDING", (0, 0), (0, 0), 0),
+                        ("TOPPADDING", (1, 0), (1, 0), 1),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
+                    ]
+                )
             )
             items.append(t)
 
@@ -291,9 +291,7 @@ def build_experience(experience: list, styles: dict, content_width: float) -> li
                     if not sent.endswith("."):
                         sent += "."
                     items.append(
-                        Paragraph(
-                            f"\xb7{NBSP * 2}{esc(sent)}", styles["bullet"]
-                        )
+                        Paragraph(f"\xb7{NBSP * 2}{esc(sent)}", styles["bullet"])
                     )
 
             items.append(Spacer(1, 2.5 * mm))
@@ -306,13 +304,9 @@ def build_projects(projects: list, styles: dict) -> list:
     items = section_header("Projects", styles)
 
     for proj in projects:
-        items.append(
-            Paragraph(f"<b>{esc(proj['name'])}</b>", styles["proj_name"])
-        )
+        items.append(Paragraph(f"<b>{esc(proj['name'])}</b>", styles["proj_name"]))
         if proj.get("description"):
-            items.append(
-                Paragraph(esc(proj["description"]), styles["proj_desc"])
-            )
+            items.append(Paragraph(esc(proj["description"]), styles["proj_desc"]))
         items.append(Spacer(1, 2 * mm))
 
     return items
@@ -342,13 +336,15 @@ def build_education(education: list, styles: dict, content_width: float) -> list
             hAlign="LEFT",
         )
         t.setStyle(
-            TableStyle([
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("TOPPADDING", (0, 0), (-1, -1), 0),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-            ])
+            TableStyle(
+                [
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                ]
+            )
         )
         items.append(t)
 
@@ -356,9 +352,7 @@ def build_education(education: list, styles: dict, content_width: float) -> list
             items.append(Paragraph(institution, styles["body"]))
 
         if focus:
-            items.append(
-                Paragraph(", ".join(esc(f) for f in focus), styles["body"])
-            )
+            items.append(Paragraph(", ".join(esc(f) for f in focus), styles["body"]))
         items.append(Spacer(1, 2 * mm))
 
     return items
@@ -388,17 +382,13 @@ def build_pdf(data: dict, output_path: str):
     story.extend(build_skills(data.get("skills", {}), styles))
 
     # Experience
-    story.extend(
-        build_experience(data.get("experience", []), styles, content_width)
-    )
+    story.extend(build_experience(data.get("experience", []), styles, content_width))
 
     # Projects
     story.extend(build_projects(data.get("projects", []), styles))
 
     # Education
-    story.extend(
-        build_education(data.get("education", []), styles, content_width)
-    )
+    story.extend(build_education(data.get("education", []), styles, content_width))
 
     doc = SimpleDocTemplate(
         output_path,
