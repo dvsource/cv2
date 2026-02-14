@@ -1,0 +1,89 @@
+{
+  "contact": {
+    "name": "Viraj Kaushalye",
+    "email": "virajkaushalye1@gmail.com",
+    "phone": "+94711252032",
+    "linkedin": "linkedin/in/dvsource",
+    "github": "github.com/dvsource",
+    "website": "v4k8.dev"
+  },
+  "summary": "Software developer with hands-on experience in coding, automation, and building scalable systems from scratch. Strong interest in exploring open-source codebases to understand system design and apply proven engineering patterns. Experienced in leveraging modern AI tools and emerging AI technologies to improve development workflows and productivity. Continuous learner with a focus on code quality, automation, and maintainable software.",
+  "skills": {
+    "languages": ["Java", "C#", "Python", "PHP", "Javascript/Typescript", "Go", "Rust"],
+    "frontend": ["Angular", "React"],
+    "backend": ["Spring Boot", "Node.js", "Django"],
+    "fullstack": ["Nextjs"],
+    "devops_cloud": ["Docker", "Kubernetes", "AWS", "Azure", "Terraform", "Github Actions", "Jenkins"],
+    "databases": ["MySQL", "Postgres", "MongoDB", "Redis", "Elasticsearch", "Kafka"]
+  },
+  "experience": [
+    {
+      "company": "Matific - Sri Lanka",
+      "roles": [
+        {
+          "title": "Senior Software Engineer",
+          "period": "2022 - 2026",
+          "description": "Worked on core feature development for an education domain platform, including UI migrations, performance improvements, report generation, and AWS (Lambda) microservices development. I also built a RAG-based AI agent to support customer support personnel in understanding backend code logic and helping them troubleshoot problems without going through developers."
+        }
+      ]
+    },
+    {
+      "company": "Codegen International",
+      "roles": [
+        {
+          "title": "Senior Software Engineer",
+          "period": "2020 - 2022",
+          "description": "I worked on building Angular standalone widgets for WordPress sites. Contributed to the company's core FE framework to improve usability & accessibility features."
+        },
+        {
+          "title": "Software Engineer",
+          "period": "2019 - 2020",
+          "description": "I worked on a Project Management Tool, contributing to features such as Jira and GitLab integration, building statistical views, and report generation. I was also involved in migrating a travel-domain Java Swing application to a full-featured Angular web application."
+        },
+        {
+          "title": "Trainee Software Engineer",
+          "period": "2019",
+          "description": "I worked on an Enterprise Social Network project, contributing to features such as leave and attendance, a chatbot, and reporting. Also bug fixes, and overall application improvements."
+        }
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "RAG based Knowledge based Assistant",
+      "description": "Project I solely responsible at Matific"
+    },
+    {
+      "name": "A/L Physics Teacher Assistant + Class Scheduler",
+      "description": "Project I built for my Wife, who is a teacher for Physics"
+    },
+    {
+      "name": "Personal Life Management System",
+      "description": "v4k8.dev"
+    },
+    {
+      "name": "AR - based Indoor Navigation Guide",
+      "description": "University Project"
+    },
+    {
+      "name": "Travel Buddy, Haven Heart, System-Tray Note-Taking App",
+      "description": "Projects I made for friends"
+    }
+  ],
+  "education": [
+    {
+      "institution": "University of Sri Jayewardenepura",
+      "degree": "Bachelor of Science, Computer Science",
+      "period": "2015 - 2018",
+      "focus": ["Mathematics", "Computer Science", "Statistics"]
+    },
+    {
+      "institution": "D. S. Senanayake Collage",
+      "period": "2006 - 2014",
+      "focus": ["G.C.E A/L - Mathematics", "Physics", "Chemistry"]
+    }
+  ],
+  "interests": {
+    "reading": ["Fiction", "Non-Fiction", "Technical books"]
+  }
+}
