@@ -37,7 +37,7 @@ interface Education {
 
 interface Skill {
   label: string;
-  items: string[];
+  items: string;
 }
 
 interface CvData {
@@ -47,6 +47,12 @@ interface CvData {
   experience: Experience[];
   projects: Project[];
   education: Education[];
+}
+
+interface VersionSummary {
+  id: number;
+  created_at: string;
+  source: string;
 }
 
 interface Toast {
@@ -59,16 +65,36 @@ interface Toast {
 
 function SaveIcon() {
   return (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+      />
     </svg>
   );
 }
 
 function DownloadIcon() {
   return (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+      />
     </svg>
   );
 }
@@ -76,8 +102,19 @@ function DownloadIcon() {
 function SpinnerIcon() {
   return (
     <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+      />
     </svg>
   );
 }
@@ -98,16 +135,36 @@ function ChevronIcon({ open }: { open: boolean }) {
 
 function TrashIcon() {
   return (
-    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+      />
     </svg>
   );
 }
 
 function DocIcon() {
   return (
-    <svg className="w-16 h-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    <svg
+      className="w-16 h-16 text-gray-300"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={1}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+      />
     </svg>
   );
 }
@@ -174,11 +231,29 @@ function App() {
   const [unsaved, setUnsaved] = useState(false);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<Toast | null>(null);
+  const [versions, setVersions] = useState<VersionSummary[]>([]);
+  const [activeVersionId, setActiveVersionId] = useState<number | null>(null);
+
+  const refreshVersions = useCallback(async () => {
+    try {
+      const res = await fetch("/api/versions");
+      const list: VersionSummary[] = await res.json();
+      setVersions(list);
+      if (list.length > 0) setActiveVersionId(list[0].id);
+    } catch {
+      // silently ignore
+    }
+  }, []);
 
   useEffect(() => {
-    fetch("/api/cv")
-      .then((r) => r.json())
-      .then(setData);
+    Promise.all([
+      fetch("/api/cv").then((r) => r.json()),
+      fetch("/api/versions").then((r) => r.json()),
+    ]).then(([cvData, versionList]) => {
+      setData(cvData);
+      setVersions(versionList);
+      if (versionList.length > 0) setActiveVersionId(versionList[0].id);
+    });
   }, []);
 
   // Auto-dismiss toast
@@ -198,9 +273,12 @@ function App() {
     }
   }, [toast]);
 
-  const showToast = useCallback((message: string, type: "success" | "error") => {
-    setToast({ message, type, visible: true });
-  }, []);
+  const showToast = useCallback(
+    (message: string, type: "success" | "error") => {
+      setToast({ message, type, visible: true });
+    },
+    [],
+  );
 
   const toggleSection = (key: string) => {
     setCollapsed((prev) => {
@@ -245,6 +323,7 @@ function App() {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
       setPdfUrl(URL.createObjectURL(blob));
       showToast("PDF generated successfully", "success");
+      refreshVersions();
     } catch {
       showToast("Failed to generate PDF", "error");
     } finally {
@@ -262,9 +341,45 @@ function App() {
       if (!res.ok) throw new Error("Save failed");
       setUnsaved(false);
       showToast("CV saved successfully", "success");
+      refreshVersions();
     } catch {
       showToast("Failed to save CV", "error");
     }
+  };
+
+  const restoreVersion = async (id: number) => {
+    try {
+      const res = await fetch(`/api/versions/${id}`);
+      if (!res.ok) throw new Error("Fetch failed");
+      const version = await res.json();
+      setData(version.data);
+      setActiveVersionId(id);
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(null);
+      setUnsaved(id !== versions[0]?.id);
+      showToast("Version restored", "success");
+    } catch {
+      showToast("Failed to restore version", "error");
+    }
+  };
+
+  const formatVersionLabel = (v: VersionSummary) => {
+    const d = new Date(v.created_at + (v.created_at.endsWith("Z") ? "" : "Z"));
+    const date = d.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
+    const time = d.toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    const sourceLabel =
+      v.source === "generate"
+        ? "PDF"
+        : v.source === "import"
+          ? "Import"
+          : "Save";
+    return `${date}, ${time} (${sourceLabel})`;
   };
 
   return (
@@ -276,31 +391,59 @@ function App() {
           {unsaved && (
             <span className="flex items-center gap-1.5 text-xs text-amber-300">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-300" />
-              Unsaved changes
+              Saved
             </span>
           )}
           {!unsaved && data && (
             <span className="flex items-center gap-1.5 text-xs text-emerald-300">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-300" />
-              Saved
+              Unsaved changes
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={save}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-white/30 rounded-md hover:bg-white/10 transition-colors duration-150 cursor-pointer"
-          >
-            <SaveIcon />
-            Save
-          </button>
+          {versions.length > 0 && (
+            <div className="flex items-center gap-1.5 mr-2">
+              <svg
+                className="w-4 h-4 text-white/60"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <select
+                className="bg-white/10 text-white text-sm border border-white/20 rounded-md px-2 py-1 outline-none cursor-pointer hover:bg-white/20 transition-colors duration-150"
+                value={activeVersionId ?? ""}
+                onChange={(e) => restoreVersion(Number(e.target.value))}
+              >
+                {versions.map((v) => (
+                  <option key={v.id} value={v.id} className="text-gray-900">
+                    {formatVersionLabel(v)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <button
             onClick={generate}
             disabled={loading}
-            className="flex items-center gap-1.5 px-4 py-1.5 text-sm bg-white text-[#1b2a4a] font-medium rounded-md hover:bg-gray-100 transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-white/30 rounded-md hover:bg-white/10 transition-colors duration-150 cursor-pointer"
           >
             {loading ? <SpinnerIcon /> : <DownloadIcon />}
             {loading ? "Generating..." : "Generate PDF"}
+          </button>
+          <button
+            onClick={save}
+            className="flex items-center gap-1.5 px-4 py-1.5 text-sm bg-white text-[#1b2a4a] font-medium rounded-md hover:bg-gray-100 transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+          >
+            <SaveIcon />
+            Download
           </button>
         </div>
       </header>
@@ -309,9 +452,22 @@ function App() {
         {/* Form Panel */}
         <div className="w-[700px] shrink-0 overflow-y-auto p-8 bg-gray-50 custom-scrollbar shadow-[2px_0_8px_rgba(0,0,0,0.06)]">
           {/* Contact */}
-          <Section title="Contact" open={isOpen("contact")} onToggle={() => toggleSection("contact")}>
+          <Section
+            title="Contact"
+            open={isOpen("contact")}
+            onToggle={() => toggleSection("contact")}
+          >
             <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-              {(["name", "email", "phone", "website", "linkedin", "github"] as const).map((f) => (
+              {(
+                [
+                  "name",
+                  "email",
+                  "phone",
+                  "website",
+                  "linkedin",
+                  "github",
+                ] as const
+              ).map((f) => (
                 <label key={f} className="flex flex-col gap-1">
                   <span className={labelClasses}>{f}</span>
                   <input
@@ -329,7 +485,11 @@ function App() {
           </Section>
 
           {/* Summary */}
-          <Section title="Summary" open={isOpen("summary")} onToggle={() => toggleSection("summary")}>
+          <Section
+            title="Summary"
+            open={isOpen("summary")}
+            onToggle={() => toggleSection("summary")}
+          >
             <textarea
               className={`w-full ${inputClasses} resize-y`}
               rows={8}
@@ -364,13 +524,10 @@ function App() {
                 <input
                   className={`flex-1 ${inputClasses}`}
                   placeholder="Comma-separated values"
-                  value={skill.items.join(", ")}
+                  value={skill.items}
                   onChange={(e) =>
                     update((d) => {
-                      d.skills[si].items = e.target.value
-                        .split(",")
-                        .map((s) => s.trim())
-                        .filter(Boolean);
+                      d.skills[si].items = e.target.value;
                     })
                   }
                 />
@@ -391,7 +548,7 @@ function App() {
               className={addBtnClasses}
               onClick={() =>
                 update((d) => {
-                  d.skills.push({ label: "", items: [] });
+                  d.skills.push({ label: "", items: "" });
                 })
               }
             >
@@ -434,7 +591,10 @@ function App() {
                   </button>
                 </div>
                 {exp.roles.map((role, ri) => (
-                  <div key={ri} className="border-l-2 border-[#1b2a4a]/20 pl-4 ml-1 my-3">
+                  <div
+                    key={ri}
+                    className="border-l-2 border-[#1b2a4a]/20 pl-4 ml-1 my-3"
+                  >
                     <div className="flex gap-3 mb-2">
                       <label className="flex-1 flex flex-col gap-1">
                         <span className={labelClasses}>Title</span>
@@ -455,7 +615,8 @@ function App() {
                           value={role.period}
                           onChange={(e) =>
                             update((d) => {
-                              d.experience[ei].roles[ri].period = e.target.value;
+                              d.experience[ei].roles[ri].period =
+                                e.target.value;
                             })
                           }
                         />
@@ -469,7 +630,8 @@ function App() {
                         value={role.description}
                         onChange={(e) =>
                           update((d) => {
-                            d.experience[ei].roles[ri].description = e.target.value;
+                            d.experience[ei].roles[ri].description =
+                              e.target.value;
                           })
                         }
                       />
@@ -513,7 +675,9 @@ function App() {
                         })
                       }
                     />
-                    <span className="text-xs text-gray-400">Page break after</span>
+                    <span className="text-xs text-gray-400">
+                      Page break after
+                    </span>
                   </label>
                 </div>
               </div>
@@ -591,7 +755,9 @@ function App() {
                       })
                     }
                   />
-                  <span className="text-xs text-gray-400">Page break after</span>
+                  <span className="text-xs text-gray-400">
+                    Page break after
+                  </span>
                 </label>
               </div>
             ))}
@@ -674,8 +840,13 @@ function App() {
                       update((d) => {
                         d.education[ei].focus = e.target.value
                           .split(",")
-                          .map((s) => s.trim())
-                          .filter(Boolean);
+                          .map((s) => s.trim());
+                      })
+                    }
+                    onBlur={() =>
+                      update((d) => {
+                        d.education[ei].focus =
+                          d.education[ei].focus.filter(Boolean);
                       })
                     }
                   />
@@ -691,7 +862,9 @@ function App() {
                       })
                     }
                   />
-                  <span className="text-xs text-gray-400">Page break after</span>
+                  <span className="text-xs text-gray-400">
+                    Page break after
+                  </span>
                 </label>
               </div>
             ))}
@@ -717,19 +890,44 @@ function App() {
         <div className="flex-1 bg-gray-100 flex items-center justify-center min-h-0">
           {loading ? (
             <div className="flex flex-col items-center gap-4">
-              <svg className="w-10 h-10 animate-spin text-[#1b2a4a]" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              <svg
+                className="w-10 h-10 animate-spin text-[#1b2a4a]"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
               </svg>
-              <span className="text-gray-500 text-sm">Generating your CV...</span>
+              <span className="text-gray-500 text-sm">
+                Generating your CV...
+              </span>
             </div>
           ) : pdfUrl ? (
-            <iframe className="w-full h-full border-none" src={pdfUrl} title="PDF Preview" />
+            <iframe
+              className="w-full h-full border-none"
+              src={pdfUrl}
+              title="PDF Preview"
+            />
           ) : (
             <div className="flex flex-col items-center gap-3 text-center">
               <DocIcon />
-              <p className="text-gray-400 text-lg font-medium">Generate a preview</p>
-              <p className="text-gray-300 text-sm">Edit your CV and click "Generate PDF" to see it here</p>
+              <p className="text-gray-400 text-lg font-medium">
+                Generate a preview
+              </p>
+              <p className="text-gray-300 text-sm">
+                Edit your CV and click "Generate PDF" to see it here
+              </p>
             </div>
           )}
         </div>
@@ -737,7 +935,9 @@ function App() {
 
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed top-20 right-6 z-50 ${toast.visible ? "toast-enter" : "toast-exit"}`}>
+        <div
+          className={`fixed top-20 right-6 z-50 ${toast.visible ? "toast-enter" : "toast-exit"}`}
+        >
           <div
             className={`flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${
               toast.type === "success"
@@ -746,12 +946,32 @@ function App() {
             }`}
           >
             {toast.type === "success" ? (
-              <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              <svg
+                className="w-4 h-4 text-emerald-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             ) : (
-              <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-4 h-4 text-red-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             )}
             {toast.message}

@@ -263,10 +263,11 @@ def build_skills(skills: list, styles: dict) -> list:
 
     for skill in skills:
         label = esc(skill.get("label", ""))
-        vals = skill.get("items", [])
+        vals = skill.get("items", "")
+        if isinstance(vals, list):
+            vals = ", ".join(vals)
         if label and vals:
-            escaped_vals = ", ".join(esc(v) for v in vals)
-            items.append(Paragraph(f"<b>{label}:</b> {escaped_vals}", styles["body"]))
+            items.append(Paragraph(f"<b>{label}:</b> {esc(vals)}", styles["body"]))
 
     return items
 

@@ -5,3 +5,9 @@ services:
       - "5000:5000"
     volumes:
       - ./cv.json:/app/cv.json
+      - cv-db:/app/db-data
+    environment:
+      - CV_DB_PATH=/app/db-data/cv_history.db
+
+volumes:
+  cv-db:

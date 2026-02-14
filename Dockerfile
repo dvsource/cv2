@@ -22,7 +22,7 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY server.py build_cv.py ./
+COPY server.py build_cv.py db.py ./
 COPY --from=frontend /app/web/dist ./web/dist
 
 EXPOSE 5000
