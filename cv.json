@@ -9,10 +9,10 @@
   },
   "education": [
     {
-      "degree": "Bachelor of Science, Computer Science",
+      "degree": "Bachelor of Science in Applied Science",
       "focus": [
-        "Mathematics",
         "Computer Science",
+        "Mathematics",
         "Statistics"
       ],
       "institution": "University of Sri Jayewardenepura",
@@ -24,7 +24,7 @@
         "Physics",
         "Chemistry"
       ],
-      "institution": "D. S. Senanayake Collage",
+      "institution": "D. S. Senanayake College",
       "period": "2006 - 2014"
     }
   ],
@@ -33,7 +33,7 @@
       "company": "Matific - Sri Lanka",
       "roles": [
         {
-          "description": "Built data-intensive activity pages, advanced filtering systems, reporting modules, and core admin tools using Angular and Django, optimizing performance for large datasets. (Matific - Teacher Site)\nDeveloped serverless microservices with AWS Lambda and a Rust PoC for high-performance computation, reducing operational costs.\nIncreased unit test coverage to 90%+, enhancing reliability and regression safety.\nWorking with global cross-teams (Mobile, Unity, Content, ML/AI, Support) to resolve production issues and improve integration.\nContributed to company-wide UI component migration, improving consistency and maintainability.\nDelivered an Accessibility-compliant product version under tight deadlines for European and North American markets.\nBuilding a RAG-based AI agent using LangChain to support backend to troubleshoot customer claims without developer intervention.",
+          "description": "Built data-intensive activity pages, advanced filtering systems, reporting modules, and core admin tools using Angular and Django, optimizing performance for large datasets. (Matific - Teacher Site)\nDeveloped serverless microservices with AWS Lambda and a Rust PoC for high-performance computation, reducing operational costs.\nIncreased unit test coverage to 90%+, enhancing reliability and regression safety.\nWorked with global cross-functional teams (Mobile, Unity, Content, ML/AI, Support) to resolve production issues and improve integrations.\nContributed to company-wide UI component migration, improving consistency and maintainability.\nDelivered an Accessibility-compliant product version under tight deadlines for European and North American markets.\nBuilt a RAG-based AI agent using LangChain to assist backend support teams in troubleshooting customer issues without requiring developer intervention.",
           "period": "2022 - 2026",
           "title": "Senior Software Engineer"
         }
@@ -62,17 +62,11 @@
       ]
     }
   ],
-  "interests": [
-    "Learning Rust and explore system programming with it",
-    "Contributing to open source projects",
-    "Running Local LLMs and experimenting with them",
-    "Reading technical books mostly about system design and solution architecture ",
-    "Building more productivity tools, CLIs, TUIs"
-  ],
+  "interests": [],
   "projects": [
     {
       "description": "An R&D project I developed at Matific. It is an AI-powered assistant designed to help support staff understand the logic behind product functionalities without needing to consult developers, especially when handling new or complex customer issues.\n\nBuilt using LangChain, a vector database, text embeddings, and OpenAI LLMs.",
-      "name": "RAG based Knowledge based Assistant"
+      "name": "RAG-based Knowledge-based Assistant"
     },
     {
       "description": "A project I built for my wife. It is a collection of tools designed to support her day-to-day work at school and private classes.\n\nThe system includes AI-powered features to assist with her teaching career, such as generating new Physics problem ideas, simplifying complex concepts, and helping create structured lesson plans and schedules.",
@@ -83,13 +77,13 @@
       "name": "Personal Life Management System"
     },
     {
-      "description": "The final year University project - An augmented reality project built with Unity and iOS ARKit.\n\nThe application was designed to help visitors navigate large buildings by providing real-time, AR-based indoor guidance and directional assistance.",
-      "name": "AR - based Indoor Navigation Guide"
+      "description": "Final-year university project — an augmented reality application built with Unity and iOS ARKit.\n\nThe application was designed to help visitors navigate large buildings by providing real-time, AR-based indoor guidance and directional assistance.",
+      "name": "AR-based Indoor Navigation Guide"
     }
   ],
   "skills": [
     {
-      "items": "Java, Javascript/Typescript, C#, Python, PHP, Go, Rust",
+      "items": "Java, JavaScript/TypeScript, C#, Python, PHP, Go, Rust",
       "label": "Languages"
     },
     {
@@ -101,17 +95,15 @@
       "label": "Backend"
     },
     {
-      "items": [
-        "Nextjs"
-      ],
+      "items": "Next js",
       "label": "Fullstack"
     },
     {
       "items": "Docker, Kubernetes, AWS, Jenkins",
-      "label": "CICD & Cloud"
+      "label": "CI/CD & Cloud"
     },
     {
-      "items": "MySQL, Postgres, MongoDB, Redis, Elasticsearch",
+      "items": "MySQL, PostgreSQL, MongoDB, Redis, Elasticsearch",
       "label": "Databases"
     },
     {
@@ -119,5 +111,5 @@
       "label": "Other"
     }
   ],
-  "summary": "Software developer focused on building clean, maintainable, and scalable systems across the full stack. Strong interest in distributed systems, system architecture, and designing reliable software from frontend to backend. Passionate about exploring open-source projects to understand engineering patterns and architectural trade-offs.\nCommitted to efficiency, reliability, and automation, with a strong focus on improving developer productivity and long-term maintainability. Hands-on experience with modern AI technologies, including agent-based systems, MCP and RAG implementations, applying them to rapidly evolving development workflows."
+  "summary": "Software developer focused on building clean, maintainable, and scalable systems across the full stack. Strong interest in distributed systems, system architecture, and designing reliable software across frontend and backend systems. Passionate about exploring open-source projects to understand engineering patterns and architectural trade-offs.\nCommitted to efficiency, reliability, and automation, with a strong focus on improving developer productivity and long-term maintainability. Hands-on experience with modern AI technologies, including agent-based systems and MCP/RAG implementations, applying them to rapidly evolving development workflows."
 }

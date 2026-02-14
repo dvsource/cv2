@@ -330,7 +330,11 @@ def build_projects(projects: list, styles: dict) -> list:
     for proj in projects:
         items.append(Paragraph(f"<b>{esc(proj['name'])}</b>", styles["proj_name"]))
         if proj.get("description"):
-            items.append(Paragraph(esc(proj["description"]), styles["proj_desc"]))
+            lines = [l.strip() for l in proj["description"].split("\n") if l.strip()]
+            for line in lines:
+                items.append(
+                    Paragraph(f"\xb7{NBSP * 2}{esc(line)}", styles["proj_desc"])
+                )
         items.append(Spacer(1, 2 * mm))
         if proj.get("pageBreakAfter"):
             items.append(PageBreak())
