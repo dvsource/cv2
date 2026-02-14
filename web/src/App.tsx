@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import "./App.css";
 
 interface Contact {
   name: string;
@@ -61,7 +60,12 @@ function App() {
       .then(setData);
   }, []);
 
-  if (!data) return <div className="loading">Loading...</div>;
+  if (!data)
+    return (
+      <div className="flex items-center justify-center h-screen text-gray-500">
+        Loading...
+      </div>
+    );
 
   const update = (fn: (d: CvData) => void) => {
     setData((prev) => {
@@ -96,14 +100,17 @@ function App() {
   };
 
   return (
-    <div className="layout">
-      <div className="form-panel">
-        <h1>CV Editor</h1>
+    <div className="flex h-screen">
+      {/* Form Panel */}
+      <div className="flex-1 overflow-y-auto p-6 max-w-[600px] border-r border-gray-200">
+        <h1 className="text-2xl font-bold text-[#1b2a4a] mb-6">CV Editor</h1>
 
         {/* Contact */}
-        <section>
-          <h2>Contact</h2>
-          <div className="field-grid">
+        <section className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-1.5 mb-3">
+            Contact
+          </h2>
+          <div className="grid grid-cols-2 gap-x-3">
             {(
               [
                 "name",
@@ -114,9 +121,10 @@ function App() {
                 "github",
               ] as const
             ).map((f) => (
-              <label key={f}>
-                <span>{f}</span>
+              <label key={f} className="flex flex-col gap-0.5 mb-2">
+                <span className="text-xs text-gray-500 capitalize">{f}</span>
                 <input
+                  className="px-2 py-1.5 border border-gray-300 rounded text-sm font-[inherit]"
                   value={data.contact[f]}
                   onChange={(e) =>
                     update((d) => {
@@ -130,9 +138,12 @@ function App() {
         </section>
 
         {/* Summary */}
-        <section>
-          <h2>Summary</h2>
+        <section className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-1.5 mb-3">
+            Summary
+          </h2>
           <textarea
+            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm font-[inherit] resize-y"
             rows={8}
             value={data.summary}
             onChange={(e) =>
@@ -144,12 +155,14 @@ function App() {
         </section>
 
         {/* Skills */}
-        <section>
-          <h2>Skills</h2>
+        <section className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-1.5 mb-3">
+            Skills
+          </h2>
           {data.skills.map((skill, si) => (
-            <div key={si} className="skill-row">
+            <div key={si} className="flex gap-2 items-center mb-2">
               <input
-                className="skill-label"
+                className="w-[130px] shrink-0 px-2 py-1.5 border border-gray-300 rounded text-sm font-[inherit]"
                 placeholder="Category"
                 value={skill.label}
                 onChange={(e) =>
@@ -159,7 +172,7 @@ function App() {
                 }
               />
               <input
-                className="skill-items"
+                className="flex-1 px-2 py-1.5 border border-gray-300 rounded text-sm font-[inherit]"
                 placeholder="Comma-separated values"
                 value={skill.items.join(", ")}
                 onChange={(e) =>
@@ -172,7 +185,7 @@ function App() {
                 }
               />
               <button
-                className="remove"
+                className="px-2 py-1 text-red-600 border border-red-600 rounded text-xs shrink-0 cursor-pointer hover:bg-red-50"
                 onClick={() =>
                   update((d) => {
                     d.skills.splice(si, 1);
@@ -184,6 +197,7 @@ function App() {
             </div>
           ))}
           <button
+            className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-white cursor-pointer hover:bg-gray-100"
             onClick={() =>
               update((d) => {
                 d.skills.push({ label: "", items: [] });
@@ -195,14 +209,22 @@ function App() {
         </section>
 
         {/* Experience */}
-        <section>
-          <h2>Experience</h2>
+        <section className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-1.5 mb-3">
+            Experience
+          </h2>
           {data.experience.map((exp, ei) => (
-            <div key={ei} className="card">
-              <div className="card-header">
-                <label>
-                  <span>Company</span>
+            <div
+              key={ei}
+              className="border border-gray-200 rounded-lg p-3 mb-3 bg-gray-50/80"
+            >
+              <div className="flex items-end gap-3">
+                <label className="flex-1 flex flex-col gap-0.5 mb-2">
+                  <span className="text-xs text-gray-500 capitalize">
+                    Company
+                  </span>
                   <input
+                    className="px-2 py-1.5 border border-gray-300 rounded text-sm font-[inherit]"
                     value={exp.company}
                     onChange={(e) =>
                       update((d) => {
@@ -212,7 +234,7 @@ function App() {
                   />
                 </label>
                 <button
-                  className="remove"
+                  className="px-2 py-1.5 text-red-600 border border-red-600 rounded text-xs cursor-pointer hover:bg-red-50 mt-1"
                   onClick={() =>
                     update((d) => {
                       d.experience.splice(ei, 1);
@@ -223,11 +245,14 @@ function App() {
                 </button>
               </div>
               {exp.roles.map((role, ri) => (
-                <div key={ri} className="sub-card">
-                  <div className="field-row">
-                    <label>
-                      <span>Title</span>
+                <div key={ri} className="border-l-3 border-gray-300 pl-3 my-2">
+                  <div className="flex gap-3">
+                    <label className="flex-1 flex flex-col gap-0.5 mb-2">
+                      <span className="text-xs text-gray-500 capitalize">
+                        Title
+                      </span>
                       <input
+                        className="px-2 py-1.5 border border-gray-300 rounded text-sm font-[inherit]"
                         value={role.title}
                         onChange={(e) =>
                           update((d) => {
@@ -236,9 +261,12 @@ function App() {
                         }
                       />
                     </label>
-                    <label>
-                      <span>Period</span>
+                    <label className="flex-1 flex flex-col gap-0.5 mb-2">
+                      <span className="text-xs text-gray-500 capitalize">
+                        Period
+                      </span>
                       <input
+                        className="px-2 py-1.5 border border-gray-300 rounded text-sm font-[inherit]"
                         value={role.period}
                         onChange={(e) =>
                           update((d) => {
@@ -248,9 +276,12 @@ function App() {
                       />
                     </label>
                   </div>
-                  <label>
-                    <span>Description</span>
+                  <label className="flex flex-col gap-0.5 mb-2">
+                    <span className="text-xs text-gray-500 capitalize">
+                      Description
+                    </span>
                     <textarea
+                      className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm font-[inherit] resize-y"
                       rows={6}
                       value={role.description}
                       onChange={(e) =>
@@ -262,7 +293,7 @@ function App() {
                     />
                   </label>
                   <button
-                    className="remove"
+                    className="px-2 py-1 text-red-600 border border-red-600 rounded text-xs cursor-pointer hover:bg-red-50 mt-1"
                     onClick={() =>
                       update((d) => {
                         d.experience[ei].roles.splice(ri, 1);
@@ -274,6 +305,7 @@ function App() {
                 </div>
               ))}
               <button
+                className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-white cursor-pointer hover:bg-gray-100"
                 onClick={() =>
                   update((d) => {
                     d.experience[ei].roles.push({
@@ -286,9 +318,10 @@ function App() {
               >
                 + Add Role
               </button>
-              <label className="page-break-toggle">
+              <label className="inline-flex flex-row items-center gap-1.5 cursor-pointer select-none ml-3">
                 <input
                   type="checkbox"
+                  className="accent-[#1b2a4a]"
                   checked={!!exp.pageBreakAfter}
                   onChange={(e) =>
                     update((d) => {
@@ -296,11 +329,12 @@ function App() {
                     })
                   }
                 />
-                <span>Page break after</span>
+                <span className="text-xs text-gray-400">Page break after</span>
               </label>
             </div>
           ))}
           <button
+            className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-white cursor-pointer hover:bg-gray-100"
             onClick={() =>
               update((d) => {
                 d.experience.push({
@@ -315,13 +349,19 @@ function App() {
         </section>
 
         {/* Projects */}
-        <section>
-          <h2>Projects</h2>
+        <section className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-1.5 mb-3">
+            Projects
+          </h2>
           {data.projects.map((proj, pi) => (
-            <div key={pi} className="card">
-              <label>
-                <span>Name</span>
+            <div
+              key={pi}
+              className="border border-gray-200 rounded-lg p-3 mb-3 bg-gray-50/80"
+            >
+              <label className="flex flex-col gap-0.5 mb-2">
+                <span className="text-xs text-gray-500 capitalize">Name</span>
                 <input
+                  className="px-2 py-1.5 border border-gray-300 rounded text-sm font-[inherit]"
                   value={proj.name}
                   onChange={(e) =>
                     update((d) => {
@@ -330,9 +370,12 @@ function App() {
                   }
                 />
               </label>
-              <label>
-                <span>Description</span>
+              <label className="flex flex-col gap-0.5 mb-2">
+                <span className="text-xs text-gray-500 capitalize">
+                  Description
+                </span>
                 <textarea
+                  className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm font-[inherit] resize-y"
                   rows={4}
                   value={proj.description}
                   onChange={(e) =>
@@ -342,9 +385,9 @@ function App() {
                   }
                 />
               </label>
-              <div className="card-footer">
+              <div className="flex items-center justify-between mt-1">
                 <button
-                  className="remove"
+                  className="px-2 py-1 text-red-600 border border-red-600 rounded text-xs cursor-pointer hover:bg-red-50"
                   onClick={() =>
                     update((d) => {
                       d.projects.splice(pi, 1);
@@ -353,9 +396,10 @@ function App() {
                 >
                   Remove
                 </button>
-                <label className="page-break-toggle">
+                <label className="inline-flex flex-row items-center gap-1.5 cursor-pointer select-none">
                   <input
                     type="checkbox"
+                    className="accent-[#1b2a4a]"
                     checked={!!proj.pageBreakAfter}
                     onChange={(e) =>
                       update((d) => {
@@ -363,12 +407,15 @@ function App() {
                       })
                     }
                   />
-                  <span>Page break after</span>
+                  <span className="text-xs text-gray-400">
+                    Page break after
+                  </span>
                 </label>
               </div>
             </div>
           ))}
           <button
+            className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-white cursor-pointer hover:bg-gray-100"
             onClick={() =>
               update((d) => {
                 d.projects.push({ name: "", description: "" });
@@ -380,14 +427,22 @@ function App() {
         </section>
 
         {/* Education */}
-        <section>
-          <h2>Education</h2>
+        <section className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-1.5 mb-3">
+            Education
+          </h2>
           {data.education.map((edu, ei) => (
-            <div key={ei} className="card">
-              <div className="field-row">
-                <label>
-                  <span>Institution</span>
+            <div
+              key={ei}
+              className="border border-gray-200 rounded-lg p-3 mb-3 bg-gray-50/80"
+            >
+              <div className="flex gap-3">
+                <label className="flex-1 flex flex-col gap-0.5 mb-2">
+                  <span className="text-xs text-gray-500 capitalize">
+                    Institution
+                  </span>
                   <input
+                    className="px-2 py-1.5 border border-gray-300 rounded text-sm font-[inherit]"
                     value={edu.institution}
                     onChange={(e) =>
                       update((d) => {
@@ -396,9 +451,12 @@ function App() {
                     }
                   />
                 </label>
-                <label>
-                  <span>Period</span>
+                <label className="flex-1 flex flex-col gap-0.5 mb-2">
+                  <span className="text-xs text-gray-500 capitalize">
+                    Period
+                  </span>
                   <input
+                    className="px-2 py-1.5 border border-gray-300 rounded text-sm font-[inherit]"
                     value={edu.period}
                     onChange={(e) =>
                       update((d) => {
@@ -408,9 +466,12 @@ function App() {
                   />
                 </label>
               </div>
-              <label>
-                <span>Degree</span>
+              <label className="flex flex-col gap-0.5 mb-2">
+                <span className="text-xs text-gray-500 capitalize">
+                  Degree
+                </span>
                 <input
+                  className="px-2 py-1.5 border border-gray-300 rounded text-sm font-[inherit]"
                   value={edu.degree || ""}
                   onChange={(e) =>
                     update((d) => {
@@ -419,9 +480,12 @@ function App() {
                   }
                 />
               </label>
-              <label>
-                <span>Focus (comma-separated)</span>
+              <label className="flex flex-col gap-0.5 mb-2">
+                <span className="text-xs text-gray-500 capitalize">
+                  Focus (comma-separated)
+                </span>
                 <input
+                  className="px-2 py-1.5 border border-gray-300 rounded text-sm font-[inherit]"
                   value={(edu.focus || []).join(", ")}
                   onChange={(e) =>
                     update((d) => {
@@ -433,9 +497,9 @@ function App() {
                   }
                 />
               </label>
-              <div className="card-footer">
+              <div className="flex items-center justify-between mt-1">
                 <button
-                  className="remove"
+                  className="px-2 py-1 text-red-600 border border-red-600 rounded text-xs cursor-pointer hover:bg-red-50"
                   onClick={() =>
                     update((d) => {
                       d.education.splice(ei, 1);
@@ -444,9 +508,10 @@ function App() {
                 >
                   Remove
                 </button>
-                <label className="page-break-toggle">
+                <label className="inline-flex flex-row items-center gap-1.5 cursor-pointer select-none">
                   <input
                     type="checkbox"
+                    className="accent-[#1b2a4a]"
                     checked={!!edu.pageBreakAfter}
                     onChange={(e) =>
                       update((d) => {
@@ -454,12 +519,15 @@ function App() {
                       })
                     }
                   />
-                  <span>Page break after</span>
+                  <span className="text-xs text-gray-400">
+                    Page break after
+                  </span>
                 </label>
               </div>
             </div>
           ))}
           <button
+            className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-white cursor-pointer hover:bg-gray-100"
             onClick={() =>
               update((d) => {
                 d.education.push({
@@ -475,19 +543,32 @@ function App() {
           </button>
         </section>
 
-        <div className="actions">
-          <button className="primary" onClick={generate} disabled={loading}>
+        {/* Actions */}
+        <div className="flex gap-3 py-4 sticky bottom-0 bg-white border-t border-gray-200">
+          <button
+            className="px-6 py-2.5 bg-[#1b2a4a] text-white border border-[#1b2a4a] rounded text-base cursor-pointer hover:bg-[#2a3d66] disabled:opacity-60 disabled:cursor-not-allowed"
+            onClick={generate}
+            disabled={loading}
+          >
             {loading ? "Generating..." : "Generate PDF"}
           </button>
-          <button onClick={save}>Save JSON</button>
+          <button
+            className="px-3 py-1.5 border border-gray-300 rounded text-sm bg-white cursor-pointer hover:bg-gray-100"
+            onClick={save}
+          >
+            Save JSON
+          </button>
         </div>
       </div>
 
-      <div className="preview-panel">
+      {/* Preview Panel */}
+      <div className="flex-1 sticky top-0 h-screen bg-gray-100 flex items-center justify-center">
         {pdfUrl ? (
-          <iframe src={pdfUrl} title="PDF Preview" />
+          <iframe className="w-full h-full border-none" src={pdfUrl} title="PDF Preview" />
         ) : (
-          <div className="placeholder">Click "Generate PDF" to preview</div>
+          <div className="text-gray-400 text-lg">
+            Click "Generate PDF" to preview
+          </div>
         )}
       </div>
     </div>

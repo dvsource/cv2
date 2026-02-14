@@ -2,12 +2,14 @@ import json
 import tempfile
 from pathlib import Path
 
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
 
 from build_cv import build_pdf
 
-app = Flask(__name__)
+DIST_DIR = Path(__file__).parent / "web" / "dist"
+
+app = Flask(__name__, static_folder=str(DIST_DIR), static_url_path="")
 CORS(app)
 
 CV_PATH = Path(__file__).parent / "cv.json"
@@ -34,5 +36,13 @@ def generate():
         return send_file(tmp.name, mimetype="application/pdf")
 
 
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_spa(path):
+    if path and (DIST_DIR / path).is_file():
+        return send_from_directory(str(DIST_DIR), path)
+    return send_from_directory(str(DIST_DIR), "index.html")
+
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", debug=True, port=5000)
