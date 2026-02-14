@@ -19,11 +19,13 @@ interface Role {
 interface Experience {
   company: string;
   roles: Role[];
+  pageBreakAfter?: boolean;
 }
 
 interface Project {
   name: string;
   description: string;
+  pageBreakAfter?: boolean;
 }
 
 interface Education {
@@ -31,6 +33,7 @@ interface Education {
   degree?: string;
   period: string;
   focus: string[];
+  pageBreakAfter?: boolean;
 }
 
 interface Skills {
@@ -266,6 +269,18 @@ function App() {
               >
                 + Add Role
               </button>
+              <label className="page-break-toggle">
+                <input
+                  type="checkbox"
+                  checked={!!exp.pageBreakAfter}
+                  onChange={(e) =>
+                    update((d) => {
+                      d.experience[ei].pageBreakAfter = e.target.checked;
+                    })
+                  }
+                />
+                <span>Page break after</span>
+              </label>
             </div>
           ))}
           <button
@@ -310,16 +325,30 @@ function App() {
                   }
                 />
               </label>
-              <button
-                className="remove"
-                onClick={() =>
-                  update((d) => {
-                    d.projects.splice(pi, 1);
-                  })
-                }
-              >
-                Remove
-              </button>
+              <div className="card-footer">
+                <button
+                  className="remove"
+                  onClick={() =>
+                    update((d) => {
+                      d.projects.splice(pi, 1);
+                    })
+                  }
+                >
+                  Remove
+                </button>
+                <label className="page-break-toggle">
+                  <input
+                    type="checkbox"
+                    checked={!!proj.pageBreakAfter}
+                    onChange={(e) =>
+                      update((d) => {
+                        d.projects[pi].pageBreakAfter = e.target.checked;
+                      })
+                    }
+                  />
+                  <span>Page break after</span>
+                </label>
+              </div>
             </div>
           ))}
           <button
@@ -387,16 +416,30 @@ function App() {
                   }
                 />
               </label>
-              <button
-                className="remove"
-                onClick={() =>
-                  update((d) => {
-                    d.education.splice(ei, 1);
-                  })
-                }
-              >
-                Remove
-              </button>
+              <div className="card-footer">
+                <button
+                  className="remove"
+                  onClick={() =>
+                    update((d) => {
+                      d.education.splice(ei, 1);
+                    })
+                  }
+                >
+                  Remove
+                </button>
+                <label className="page-break-toggle">
+                  <input
+                    type="checkbox"
+                    checked={!!edu.pageBreakAfter}
+                    onChange={(e) =>
+                      update((d) => {
+                        d.education[ei].pageBreakAfter = e.target.checked;
+                      })
+                    }
+                  />
+                  <span>Page break after</span>
+                </label>
+              </div>
             </div>
           ))}
           <button

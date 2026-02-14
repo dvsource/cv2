@@ -26,6 +26,7 @@ from reportlab.platypus import (
     HRFlowable,
     Table,
     TableStyle,
+    PageBreak,
 )
 
 # ── Font Registration ─────────────────────────────────────────
@@ -296,6 +297,9 @@ def build_experience(experience: list, styles: dict, content_width: float) -> li
 
             items.append(Spacer(1, 2.5 * mm))
 
+        if exp.get("pageBreakAfter"):
+            items.append(PageBreak())
+
     return items
 
 
@@ -308,6 +312,8 @@ def build_projects(projects: list, styles: dict) -> list:
         if proj.get("description"):
             items.append(Paragraph(esc(proj["description"]), styles["proj_desc"]))
         items.append(Spacer(1, 2 * mm))
+        if proj.get("pageBreakAfter"):
+            items.append(PageBreak())
 
     return items
 
@@ -354,6 +360,8 @@ def build_education(education: list, styles: dict, content_width: float) -> list
         if focus:
             items.append(Paragraph(", ".join(esc(f) for f in focus), styles["body"]))
         items.append(Spacer(1, 2 * mm))
+        if edu.get("pageBreakAfter"):
+            items.append(PageBreak())
 
     return items
 

@@ -166,6 +166,33 @@ button.remove:hover {
   background: #fef0f0;
 }
 
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+}
+
+.page-break-toggle {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.page-break-toggle input[type="checkbox"] {
+  margin: 0;
+  accent-color: #1b2a4a;
+}
+
+.page-break-toggle span {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: none;
+}
+
 .actions {
   display: flex;
   gap: 0.75rem;
