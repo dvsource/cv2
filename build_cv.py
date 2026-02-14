@@ -52,6 +52,7 @@ pdfmetrics.registerFontFamily(
 
 COLOR_DARK = HexColor("#1B2A4A")
 COLOR_TEXT = HexColor("#2D2D2D")
+COLOR_MUTED = HexColor("#4A4A4A")
 COLOR_LINE = HexColor("#CCCCCC")
 COLOR_CONTACT = HexColor("#555555")
 
@@ -138,7 +139,7 @@ def make_styles() -> dict:
         fontName="NotoSans",
         fontSize=9.5,
         leading=13.5,
-        textColor=COLOR_TEXT,
+        textColor=COLOR_MUTED,
     )
 
     s["exp_title"] = ParagraphStyle(
@@ -154,7 +155,7 @@ def make_styles() -> dict:
         fontName="NotoSans",
         fontSize=9.5,
         leading=14,
-        textColor=COLOR_TEXT,
+        textColor=COLOR_MUTED,
         alignment=TA_RIGHT,
     )
 
@@ -163,7 +164,7 @@ def make_styles() -> dict:
         fontName="NotoSans",
         fontSize=9.5,
         leading=13.5,
-        textColor=COLOR_TEXT,
+        textColor=COLOR_MUTED,
     )
 
     s["proj_name"] = ParagraphStyle(
@@ -179,7 +180,7 @@ def make_styles() -> dict:
         fontName="NotoSans",
         fontSize=9.5,
         leading=13,
-        textColor=COLOR_TEXT,
+        textColor=COLOR_MUTED,
     )
 
     s["edu_main"] = ParagraphStyle(
@@ -195,7 +196,7 @@ def make_styles() -> dict:
         fontName="NotoSans",
         fontSize=10,
         leading=14,
-        textColor=COLOR_TEXT,
+        textColor=COLOR_MUTED,
         alignment=TA_RIGHT,
     )
 
