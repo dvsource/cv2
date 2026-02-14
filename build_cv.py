@@ -113,6 +113,7 @@ def make_styles() -> dict:
         fontSize=9,
         leading=14,
         textColor=COLOR_CONTACT,
+        leftIndent=0,
     )
 
     s["section"] = ParagraphStyle(
@@ -204,7 +205,6 @@ def make_styles() -> dict:
 # ── Section Builders ───────────────────────────────────────────
 
 
-
 def build_contact(contact: dict, styles: dict) -> list:
     """Contact info rows with Unicode icon prefixes and middle-dot separators."""
     items = []
@@ -212,19 +212,19 @@ def build_contact(contact: dict, styles: dict) -> list:
 
     row1 = []
     if contact.get("email"):
-        row1.append(f"\u2709{NBSP}{esc(contact['email'])}")
+        row1.append(esc(contact["email"]))
     if contact.get("phone"):
-        row1.append(f"\u260e{NBSP}{esc(contact['phone'])}")
+        row1.append(esc(contact["phone"]))
     if contact.get("website"):
-        row1.append(f"\u25ce{NBSP}{esc(contact['website'])}")
+        row1.append(esc(contact["website"]))
     if row1:
         items.append(Paragraph(sep.join(row1), styles["contact"]))
 
     row2 = []
     if contact.get("linkedin"):
-        row2.append(f"\u25c6{NBSP}{esc(contact['linkedin'])}")
+        row2.append(esc(contact["linkedin"]))
     if contact.get("github"):
-        row2.append(f"\u25c7{NBSP}{esc(contact['github'])}")
+        row2.append(esc(contact["github"]))
     if row2:
         items.append(Paragraph(sep.join(row2), styles["contact"]))
 
