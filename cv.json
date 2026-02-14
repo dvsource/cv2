@@ -8,14 +8,14 @@
     "website": "v4k8.dev"
   },
   "summary": "Software developer with hands-on experience in coding, automation, and building scalable systems from scratch. Strong interest in exploring open-source codebases to understand system design and apply proven engineering patterns. Experienced in leveraging modern AI tools and emerging AI technologies to improve development workflows and productivity. Continuous learner with a focus on code quality, automation, and maintainable software.",
-  "skills": {
-    "languages": ["Java", "C#", "Python", "PHP", "Javascript/Typescript", "Go", "Rust"],
-    "frontend": ["Angular", "React"],
-    "backend": ["Spring Boot", "Node.js", "Django"],
-    "fullstack": ["Nextjs"],
-    "devops_cloud": ["Docker", "Kubernetes", "AWS", "Azure", "Terraform", "Github Actions", "Jenkins"],
-    "databases": ["MySQL", "Postgres", "MongoDB", "Redis", "Elasticsearch", "Kafka"]
-  },
+  "skills": [
+    { "label": "Languages", "items": ["Java", "C#", "Python", "PHP", "Javascript/Typescript", "Go", "Rust"] },
+    { "label": "Frontend", "items": ["Angular", "React"] },
+    { "label": "Backend", "items": ["Spring Boot", "Node.js", "Django"] },
+    { "label": "Fullstack", "items": ["Nextjs"] },
+    { "label": "DevOps & Cloud", "items": ["Docker", "Kubernetes", "AWS", "Azure", "Terraform", "Github Actions", "Jenkins"] },
+    { "label": "Databases", "items": ["MySQL", "Postgres", "MongoDB", "Redis", "Elasticsearch", "Kafka"] }
+  ],
   "experience": [
     {
       "company": "Matific - Sri Lanka",

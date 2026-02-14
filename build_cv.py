@@ -203,15 +203,6 @@ def make_styles() -> dict:
 
 # ── Section Builders ───────────────────────────────────────────
 
-# Skill JSON keys → display labels (pre-escaped for XML)
-SKILL_LABELS = {
-    "languages": "Languages",
-    "frontend": "Frontend",
-    "backend": "Backend",
-    "fullstack": "Fullstack",
-    "devops_cloud": "DevOps &amp; Cloud",
-    "databases": "Databases",
-}
 
 
 def build_contact(contact: dict, styles: dict) -> list:
@@ -240,13 +231,14 @@ def build_contact(contact: dict, styles: dict) -> list:
     return items
 
 
-def build_skills(skills: dict, styles: dict) -> list:
+def build_skills(skills: list, styles: dict) -> list:
     """Build the skills section."""
     items = section_header("Skills", styles)
 
-    for key, label in SKILL_LABELS.items():
-        vals = skills.get(key)
-        if vals:
+    for skill in skills:
+        label = esc(skill.get("label", ""))
+        vals = skill.get("items", [])
+        if label and vals:
             escaped_vals = ", ".join(esc(v) for v in vals)
             items.append(Paragraph(f"<b>{label}:</b> {escaped_vals}", styles["body"]))
 
@@ -387,7 +379,7 @@ def build_pdf(data: dict, output_path: str):
     story.append(Paragraph(esc(data.get("summary", "")), styles["summary"]))
 
     # Skills
-    story.extend(build_skills(data.get("skills", {}), styles))
+    story.extend(build_skills(data.get("skills", []), styles))
 
     # Experience
     story.extend(build_experience(data.get("experience", []), styles, content_width))

@@ -166,6 +166,28 @@ button.remove:hover {
   background: #fef0f0;
 }
 
+.skill-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.skill-label {
+  width: 130px;
+  flex-shrink: 0;
+}
+
+.skill-items {
+  flex: 1;
+}
+
+.skill-row button.remove {
+  padding: 0.3rem 0.5rem;
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
 .card-footer {
   display: flex;
   align-items: center;

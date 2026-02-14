@@ -36,32 +36,19 @@ interface Education {
   pageBreakAfter?: boolean;
 }
 
-interface Skills {
-  languages: string[];
-  frontend: string[];
-  backend: string[];
-  fullstack: string[];
-  devops_cloud: string[];
-  databases: string[];
+interface Skill {
+  label: string;
+  items: string[];
 }
 
 interface CvData {
   contact: Contact;
   summary: string;
-  skills: Skills;
+  skills: Skill[];
   experience: Experience[];
   projects: Project[];
   education: Education[];
 }
-
-const SKILL_KEYS: { key: keyof Skills; label: string }[] = [
-  { key: "languages", label: "Languages" },
-  { key: "frontend", label: "Frontend" },
-  { key: "backend", label: "Backend" },
-  { key: "fullstack", label: "Fullstack" },
-  { key: "devops_cloud", label: "DevOps & Cloud" },
-  { key: "databases", label: "Databases" },
-];
 
 function App() {
   const [data, setData] = useState<CvData | null>(null);
@@ -159,22 +146,52 @@ function App() {
         {/* Skills */}
         <section>
           <h2>Skills</h2>
-          {SKILL_KEYS.map(({ key, label }) => (
-            <label key={key}>
-              <span>{label}</span>
+          {data.skills.map((skill, si) => (
+            <div key={si} className="skill-row">
               <input
-                value={(data.skills[key] || []).join(", ")}
+                className="skill-label"
+                placeholder="Category"
+                value={skill.label}
                 onChange={(e) =>
                   update((d) => {
-                    d.skills[key] = e.target.value
+                    d.skills[si].label = e.target.value;
+                  })
+                }
+              />
+              <input
+                className="skill-items"
+                placeholder="Comma-separated values"
+                value={skill.items.join(", ")}
+                onChange={(e) =>
+                  update((d) => {
+                    d.skills[si].items = e.target.value
                       .split(",")
                       .map((s) => s.trim())
                       .filter(Boolean);
                   })
                 }
               />
-            </label>
+              <button
+                className="remove"
+                onClick={() =>
+                  update((d) => {
+                    d.skills.splice(si, 1);
+                  })
+                }
+              >
+                x
+              </button>
+            </div>
           ))}
+          <button
+            onClick={() =>
+              update((d) => {
+                d.skills.push({ label: "", items: [] });
+              })
+            }
+          >
+            + Add Skill Category
+          </button>
         </section>
 
         {/* Experience */}
