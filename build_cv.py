@@ -20,7 +20,10 @@ from reportlab.lib.enums import TA_RIGHT, TA_JUSTIFY
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
-    SimpleDocTemplate,
+    BaseDocTemplate,
+    PageTemplate,
+    Frame,
+    Flowable,
     Paragraph,
     Spacer,
     HRFlowable,
@@ -48,6 +51,8 @@ pdfmetrics.registerFontFamily(
     boldItalic="NotoSans-BoldItalic",
 )
 
+pdfmetrics.registerFont(TTFont("NotoMono", f"{FONT_DIR}/NotoSansMono-Bold.ttf"))
+
 # ── Design Tokens ──────────────────────────────────────────────
 
 COLOR_DARK = HexColor("#1B2A4A")
@@ -71,18 +76,38 @@ def esc(text: str) -> str:
     return _xml_escape(str(text))
 
 
-def spaced_caps(text: str) -> str:
-    """'Professional Summary' -> 'P R O F E S S I O N A L   S U M M A R Y'."""
-    words = text.upper().split()
-    spaced_words = [(NBSP + " ").join(list(w)) for w in words]
-    return (NBSP * 4).join(spaced_words)
+class SpacedText(Flowable):
+    """Draw uppercase text with true letter-spacing via canvas charSpace."""
+
+    def __init__(self, text, font_name, font_size, text_color, char_space=3.5):
+        Flowable.__init__(self)
+        self.text = text.upper()
+        self.font_name = font_name
+        self.font_size = font_size
+        self.text_color = text_color
+        self.char_space = char_space
+
+    def wrap(self, aW, aH):
+        self.width = aW
+        self.height = self.font_size + 2
+        return (self.width, self.height)
+
+    def draw(self):
+        c = self.canv
+        c.saveState()
+        c.setFont(self.font_name, self.font_size)
+        c.setFillColor(self.text_color)
+        c._code.append(f"{self.char_space} Tc")
+        c.drawString(0, 0, self.text)
+        c.restoreState()
 
 
 def section_header(title: str, styles: dict) -> list:
     """Section title with letter-spaced caps + thin horizontal line."""
+    s = styles["section"]
     return [
         Spacer(1, 5.5 * mm),
-        Paragraph(spaced_caps(title), styles["section"]),
+        SpacedText(title, s.fontName, s.fontSize, s.textColor),
         HRFlowable(
             width="100%",
             thickness=0.5,
@@ -102,7 +127,7 @@ def make_styles() -> dict:
 
     s["name"] = ParagraphStyle(
         "name",
-        fontName="NotoSans-Bold",
+        fontName="NotoMono",
         fontSize=26,
         leading=30,
         textColor=COLOR_DARK,
@@ -119,7 +144,7 @@ def make_styles() -> dict:
 
     s["section"] = ParagraphStyle(
         "section",
-        fontName="NotoSans-Bold",
+        fontName="NotoMono",
         fontSize=9.5,
         leading=13,
         textColor=COLOR_DARK,
@@ -259,10 +284,10 @@ def build_experience(experience: list, styles: dict, content_width: float) -> li
             title_p = Paragraph(f"<b>{company} \u2014 {title}</b>", styles["exp_title"])
             date_p = Paragraph(period, styles["exp_date"])
 
+            date_w = 22 * mm
             t = Table(
                 [[title_p, date_p]],
-                colWidths=[content_width * 0.80, content_width * 0.20],
-                hAlign="LEFT",
+                colWidths=[content_width - date_w, date_w],
             )
             t.setStyle(
                 TableStyle(
@@ -329,10 +354,10 @@ def build_education(education: list, styles: dict, content_width: float) -> list
         main_p = Paragraph(main_text, styles["edu_main"])
         date_p = Paragraph(period, styles["edu_date"])
 
+        date_w = 22 * mm
         t = Table(
             [[main_p, date_p]],
-            colWidths=[content_width * 0.80, content_width * 0.20],
-            hAlign="LEFT",
+            colWidths=[content_width - date_w, date_w],
         )
         t.setStyle(
             TableStyle(
@@ -391,7 +416,7 @@ def build_pdf(data: dict, output_path: str):
     # Education
     story.extend(build_education(data.get("education", []), styles, content_width))
 
-    doc = SimpleDocTemplate(
+    doc = BaseDocTemplate(
         output_path,
         pagesize=A4,
         leftMargin=MARGIN_LR,
@@ -401,6 +426,17 @@ def build_pdf(data: dict, output_path: str):
         title=f"CV - {data['contact']['name']}",
         author=data["contact"]["name"],
     )
+    frame = Frame(
+        MARGIN_LR,
+        MARGIN_BOTTOM,
+        content_width,
+        A4[1] - MARGIN_TOP - MARGIN_BOTTOM,
+        leftPadding=0,
+        rightPadding=0,
+        topPadding=0,
+        bottomPadding=0,
+    )
+    doc.addPageTemplates([PageTemplate(id="cv", frames=[frame])])
     doc.build(story)
 
 

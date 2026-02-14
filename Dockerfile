@@ -14,6 +14,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends fonts-noto-core && \
     mkdir -p /usr/share/fonts/noto && \
     cp /usr/share/fonts/truetype/noto/NotoSans-*.ttf /usr/share/fonts/noto/ && \
+    cp /usr/share/fonts/truetype/noto/NotoSansMono-*.ttf /usr/share/fonts/noto/ && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
