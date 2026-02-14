@@ -306,12 +306,10 @@ def build_experience(experience: list, styles: dict, content_width: float) -> li
 
             desc = role.get("description", "")
             if desc:
-                sentences = [s.strip() for s in desc.split(". ") if s.strip()]
-                for sent in sentences:
-                    if not sent.endswith("."):
-                        sent += "."
+                lines = [l.strip() for l in desc.split("\n") if l.strip()]
+                for line in lines:
                     items.append(
-                        Paragraph(f"\xb7{NBSP * 2}{esc(sent)}", styles["bullet"])
+                        Paragraph(f"\xb7{NBSP * 2}{esc(line)}", styles["bullet"])
                     )
 
             items.append(Spacer(1, 2.5 * mm))
@@ -403,7 +401,8 @@ def build_pdf(data: dict, output_path: str):
 
     # Professional Summary
     story.extend(section_header("Professional Summary", styles))
-    story.append(Paragraph(esc(data.get("summary", "")), styles["summary"]))
+    summary = esc(data.get("summary", "")).replace("\n", "<br/>")
+    story.append(Paragraph(summary, styles["summary"]))
 
     # Skills
     story.extend(build_skills(data.get("skills", []), styles))
