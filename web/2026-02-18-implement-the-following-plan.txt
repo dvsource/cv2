@@ -1,0 +1,1507 @@
+
+ ▐▛███▜▌   Claude Code v2.1.38
+▝▜█████▛▘  Opus 4.6 · Claude Max
+  ▘▘ ▝▝    ~/Work/dvsource/jobhunting2026/apps/cv2/web
+
+╭──────────────────────────────────────────────────────────────────────────────╮
+│ Plan to implement                                                            │
+│                                                                              │
+│ Plan: SQLite-Backed Version History for CV Editor                            │
+│                                                                              │
+│ Context                                                                      │
+│                                                                              │
+│ Currently the CV editor reads/writes a single cv.json file with no history.  │
+│ The user wants:                                                              │
+│ - Every save/generate saves a versioned snapshot to SQLite                   │
+│ - Page refresh loads the latest version from the DB                          │
+│ - A dropdown in the header to restore previous versions                      │
+│ - pageBreakAfter booleans preserved in the stored JSON (already in the data  │
+│ shape, just stored as-is)                                                    │
+│                                                                              │
+│ Files Changed                                                                │
+│ File: db.py                                                                  │
+│ Action: CREATE                                                               │
+│ Description: SQLite module: init, seed from cv.json, save/list/get versions  │
+│ ────────────────────────────────────────                                     │
+│ File: server.py                                                              │
+│ Action: MODIFY                                                               │
+│ Description: Import db, modify 3 endpoints, add 2 new version endpoints      │
+│ ────────────────────────────────────────                                     │
+│ File: web/src/App.tsx                                                        │
+│ Action: MODIFY                                                               │
+│ Description: Version dropdown in header, restore logic, refresh on           │
+│   save/generate                                                              │
+│ ────────────────────────────────────────                                     │
+│ File: Dockerfile                                                             │
+│ Action: MODIFY                                                               │
+│ Description: Add db.py to COPY line (line 25)                                │
+│ ────────────────────────────────────────                                     │
+│ File: docker-compose.yml                                                     │
+│ Action: MODIFY                                                               │
+│ Description: Add cv_history.db volume mount                                  │
+│ No new Python or npm dependencies (sqlite3 is stdlib).                       │
+│                                                                              │
+│ 1. Create db.py (new file)                                                   │
+│                                                                              │
+│ Single cv_versions table:                                                    │
+│                                                                              │
+│ CREATE TABLE IF NOT EXISTS cv_versions (                                     │
+│     id         INTEGER PRIMARY KEY AUTOINCREMENT,                            │
+│     data       TEXT NOT NULL,                                                │
+│     created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')), │
+│     source     TEXT NOT NULL DEFAULT 'manual'  -- 'manual' | 'generate' |    │
+│ 'import'                                                                     │
+│ );                                                                           │
+│                                                                              │
+│ Functions:                                                                   │
+│ - init_db() — create table, WAL mode                                         │
+│ - seed_from_json(path) — if table empty and cv.json exists, insert as        │
+│ version 1                                                                    │
+│ - save_version(data, source) → returns version id                            │
+│ - get_latest() → latest CV data dict or None                                 │
+│ - list_versions(limit=50) → [{id, created_at, source}]                       │
+│ - get_version(id) → {id, data, created_at, source} or None                   │
+│                                                                              │
+│ DB path: CV_DB_PATH env var, default cv_history.db next to server.py.        │
+│                                                                              │
+│ 2. Modify server.py                                                          │
+│                                                                              │
+│ - Import from db, call init_db() + seed_from_json() at module level          │
+│ - GET /api/cv — get_latest(), fallback cv.json, fallback empty skeleton      │
+│ - PUT /api/cv — still writes cv.json + save_version(data, "manual"), returns │
+│  {ok, version_id}                                                            │
+│ - POST /api/generate — save_version(data, "generate") before PDF build       │
+│ - NEW GET /api/versions — returns version list (no data blobs)               │
+│ - NEW GET /api/versions/<id> — returns full version with parsed data         │
+│                                                                              │
+│ 3. Modify web/src/App.tsx                                                    │
+│                                                                              │
+│ New state                                                                    │
+│                                                                              │
+│ - versions: VersionSummary[] — {id, created_at, source}                      │
+│ - activeVersionId: number | null                                             │
+│                                                                              │
+│ New logic                                                                    │
+│                                                                              │
+│ - refreshVersions() — fetch /api/versions, update list + activeVersionId     │
+│ - On mount: fetch /api/cv and /api/versions in parallel                      │
+│ - After save/generate: call refreshVersions()                                │
+│ - restoreVersion(id) — fetch /api/versions/<id>, set data, clear pdfUrl,     │
+│ show toast                                                                   │
+│                                                                              │
+│ UI: Version dropdown in header bar                                           │
+│                                                                              │
+│ - Native <select> between status indicator and action buttons                │
+│ - Clock icon + dropdown styled for dark header (bg-white/10, white text)     │
+│ - Options: formatted date + source label (e.g. "Feb 14, 4:30 PM (Save)")     │
+│                                                                              │
+│ 4. Docker Changes                                                            │
+│                                                                              │
+│ - Dockerfile line 25: COPY server.py build_cv.py db.py ./                    │
+│ - docker-compose.yml: Add ./cv_history.db:/app/cv_history.db volume          │
+│                                                                              │
+│ 5. Migration                                                                 │
+│                                                                              │
+│ Automatic on first startup: seed_from_json() imports cv.json as version 1 if │
+│  DB is empty. cv.json continues to be updated on saves for backward compat.  │
+│                                                                              │
+│ Verification                                                                 │
+│                                                                              │
+│ 1. python server.py — DB created, seeded from cv.json                        │
+│ 2. cd web && npm run dev — form loads latest from DB                         │
+│ 3. Save → version list refreshes with new entry                              │
+│ 4. Generate PDF → version list refreshes with "PDF" label                    │
+│ 5. Select older version → form restores, preview clears                      │
+│ 6. Refresh page → latest version loads                                       │
+│ 7. docker compose up --build — works, DB persists                            │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+● I'll implement the plan. Let me start by reading the existing files to
+  understand the current state.
+
+● Read 3 files (ctrl+o to expand)
+
+● Now I have a clear picture of the codebase. Let me implement the plan.
+
+● Write(~/Work/dvsource/jobhunting2026/apps/cv2/db.py)
+  ⎿  Wrote 91 lines to ../db.py
+       1 import json
+       2 import os
+       3 import sqlite3
+       4 from pathlib import Path
+       5 
+       6 DB_PATH = os.environ.get("CV_DB_PATH", Path(__file__).parent / "
+         cv_history.db")
+       7 
+       8 
+       9 def _connect():
+      10     conn = sqlite3.connect(DB_PATH)
+     … +81 lines (ctrl+o to expand)
+
+● Now modify server.py:
+
+● Write(~/Work/dvsource/jobhunting2026/apps/cv2/server.py)
+  ⎿  Added 32 lines, removed 2 lines
+       6  from flask_cors import CORS
+       7 
+       8  from build_cv import build_pdf
+       9 +from db import init_db, seed_from_json, save_version, get_lates
+         +t, list_versions, get_version                                  
+      10 
+      11  DIST_DIR = Path(__file__).parent / "web" / "dist"
+      12 
+     ...
+      15 
+      16  CV_PATH = Path(__file__).parent / "cv.json"
+      17 
+      18 +init_db()                                                      
+      19 +seed_from_json(CV_PATH)                                        
+      20 
+      21 +                                                               
+      22  @app.get("/api/cv")
+      23  def get_cv():
+      20 -    data = json.loads(CV_PATH.read_text())                     
+      24 +    data = get_latest()                                        
+      25 +    if data is None and CV_PATH.exists():                      
+      26 +        data = json.loads(CV_PATH.read_text())                 
+      27 +    if data is None:                                           
+      28 +        data = {                                               
+      29 +            "contact": {"name": "", "email": "", "phone": "", "
+         +website": "", "linkedin": "", "github": ""},                   
+      30 +            "summary": "",                                     
+      31 +            "skills": [],                                      
+      32 +            "experience": [],                                  
+      33 +            "projects": [],                                    
+      34 +            "education": [],                                   
+      35 +        }                                                      
+      36      return jsonify(data)
+      37 
+      38 
+     ...
+      40  def save_cv():
+      41      data = request.get_json()
+      42      CV_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=
+          False) + "\n")
+      28 -    return jsonify({"ok": True})                               
+      43 +    version_id = save_version(data, "manual")                  
+      44 +    return jsonify({"ok": True, "version_id": version_id})     
+      45 
+      46 
+      47  @app.post("/api/generate")
+      48  def generate():
+      49      data = request.get_json()
+      50 +    save_version(data, "generate")                             
+      51      with tempfile.NamedTemporaryFile(suffix=".pdf", delete=Fals
+          e) as tmp:
+      52          build_pdf(data, tmp.name)
+      53          return send_file(tmp.name, mimetype="application/pdf")
+      54 
+      55 
+      56 +@app.get("/api/versions")                                      
+      57 +def versions_list():                                           
+      58 +    return jsonify(list_versions())                            
+      59 +                                                               
+      60 +                                                               
+      61 +@app.get("/api/versions/<int:vid>")                            
+      62 +def versions_get(vid):                                         
+      63 +    v = get_version(vid)                                       
+      64 +    if v is None:                                              
+      65 +        return jsonify({"error": "not found"}), 404            
+      66 +    return jsonify(v)                                          
+      67 +                                                               
+      68 +                                                               
+      69  @app.route("/", defaults={"path": ""})
+      70  @app.route("/<path:path>")
+      71  def serve_spa(path):
+
+● Now modify App.tsx — adding version state, fetch logic, and the dropdown in
+  the header:
+
+● Update(src/App.tsx)
+  ⎿  Added 6 lines
+      49    education: Education[];
+      50  }
+      51 
+      52 +interface VersionSummary {                                     
+      53 +  id: number;                                                  
+      54 +  created_at: string;                                          
+      55 +  source: string;                                              
+      56 +}                                                              
+      57 +                                                               
+      58  interface Toast {
+      59    message: string;
+      60    type: "success" | "error";
+
+● Now add the version state variables:
+
+● Update(src/App.tsx)
+  ⎿  Added 21 lines, removed 3 lines
+      231    const [unsaved, setUnsaved] = useState(false);
+      232    const [collapsed, setCollapsed] = useState<Set<string>>(new
+           Set());
+      233    const [toast, setToast] = useState<Toast | null>(null);
+      234 +  const [versions, setVersions] = useState<VersionSummary[]>([
+          +]);                                                           
+      235 +  const [activeVersionId, setActiveVersionId] = useState<numbe
+          +r | null>(null);                                              
+      236 
+      237 +  const refreshVersions = useCallback(async () => {           
+      238 +    try {                                                     
+      239 +      const res = await fetch("/api/versions");               
+      240 +      const list: VersionSummary[] = await res.json();        
+      241 +      setVersions(list);                                      
+      242 +      if (list.length > 0) setActiveVersionId(list[0].id);    
+      243 +    } catch {                                                 
+      244 +      // silently ignore                                      
+      245 +    }                                                         
+      246 +  }, []);                                                     
+      247 +                                                              
+      248    useEffect(() => {
+      236 -    fetch("/api/cv")                                          
+      237 -      .then((r) => r.json())                                  
+      238 -      .then(setData);                                         
+      249 +    Promise.all([                                             
+      250 +      fetch("/api/cv").then((r) => r.json()),                 
+      251 +      fetch("/api/versions").then((r) => r.json()),           
+      252 +    ]).then(([cvData, versionList]) => {                      
+      253 +      setData(cvData);                                        
+      254 +      setVersions(versionList);                               
+      255 +      if (versionList.length > 0) setActiveVersionId(versionLi
+          +st[0].id);                                                    
+      256 +    });                                                       
+      257    }, []);
+      258 
+      259    // Auto-dismiss toast
+
+● Add refreshVersions() call after save and generate:
+
+● Update(src/App.tsx)
+  ⎿  Added 1 line
+      323        if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+      324        setPdfUrl(URL.createObjectURL(blob));
+      325        showToast("PDF generated successfully", "success");
+      326 +      refreshVersions();                                      
+      327      } catch {
+      328        showToast("Failed to generate PDF", "error");
+      329      } finally {
+
+● Update(src/App.tsx)
+  ⎿  Added 1 line
+      341        if (!res.ok) throw new Error("Save failed");
+      342        setUnsaved(false);
+      343        showToast("CV saved successfully", "success");
+      344 +      refreshVersions();                                      
+      345      } catch {
+      346        showToast("Failed to save CV", "error");
+      347      }
+
+● Now add the restoreVersion handler and the version dropdown UI in the header.
+  Let me add the restore function right after the save function:
+
+● Update(src/App.tsx)
+  ⎿  Added 24 lines
+      347      }
+      348    };
+      349 
+      350 +  const restoreVersion = async (id: number) => {              
+      351 +    try {                                                     
+      352 +      const res = await fetch(`/api/versions/${id}`);         
+      353 +      if (!res.ok) throw new Error("Fetch failed");           
+      354 +      const version = await res.json();                       
+      355 +      setData(version.data);                                  
+      356 +      setActiveVersionId(id);                                 
+      357 +      if (pdfUrl) URL.revokeObjectURL(pdfUrl);                
+      358 +      setPdfUrl(null);                                        
+      359 +      setUnsaved(id !== versions[0]?.id);                     
+      360 +      showToast("Version restored", "success");               
+      361 +    } catch {                                                 
+      362 +      showToast("Failed to restore version", "error");        
+      363 +    }                                                         
+      364 +  };                                                          
+      365 +                                                              
+      366 +  const formatVersionLabel = (v: VersionSummary) => {         
+      367 +    const d = new Date(v.created_at + (v.created_at.endsWith("
+          +Z") ? "" : "Z"));                                             
+      368 +    const date = d.toLocaleDateString(undefined, { month: "sho
+          +rt", day: "numeric" });                                       
+      369 +    const time = d.toLocaleTimeString(undefined, { hour: "nume
+          +ric", minute: "2-digit" });                                   
+      370 +    const sourceLabel = v.source === "generate" ? "PDF" : v.so
+          +urce === "import" ? "Import" : "Save";                        
+      371 +    return `${date}, ${time} (${sourceLabel})`;               
+      372 +  };                                                          
+      373 +                                                              
+      374    return (
+      375      <div className="flex flex-col h-screen">
+      376        {/* Top Header Bar */}
+
+● Now add the version dropdown in the header, between the status indicator and
+  the buttons:
+
+● Update(src/App.tsx)
+  ⎿  Added 18 lines
+      391            )}
+      392          </div>
+      393          <div className="flex items-center gap-2">
+      394 +          {versions.length > 0 && (                           
+      395 +            <div className="flex items-center gap-1.5 mr-2">  
+      396 +              <svg className="w-4 h-4 text-white/60" fill="non
+          +e" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}> 
+      397 +                <path strokeLinecap="round" strokeLinejoin="ro
+          +und" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />       
+      398 +              </svg>                                          
+      399 +              <select                                         
+      400 +                className="bg-white/10 text-white text-sm bord
+          +er border-white/20 rounded-md px-2 py-1 outline-none cursor-po
+          +inter hover:bg-white/20 transition-colors duration-150"       
+      401 +                value={activeVersionId ?? ""}                 
+      402 +                onChange={(e) => restoreVersion(Number(e.targe
+          +t.value))}                                                    
+      403 +              >                                               
+      404 +                {versions.map((v) => (                        
+      405 +                  <option key={v.id} value={v.id} className="t
+          +ext-gray-900">                                                
+      406 +                    {formatVersionLabel(v)}                   
+      407 +                  </option>                                   
+      408 +                ))}                                           
+      409 +              </select>                                       
+      410 +            </div>                                            
+      411 +          )}                                                  
+      412            <button
+      413              onClick={save}
+      414              className="flex items-center gap-1.5 px-3 py-1.5 t
+           ext-sm border border-white/30 rounded-md hover:bg-white/10 tra
+           nsition-colors duration-150 cursor-pointer"
+
+● Now update the Docker files:
+
+● Update(~/Work/dvsource/jobhunting2026/apps/cv2/Dockerfile)
+  ⎿  Added 1 line, removed 1 line
+      22  COPY requirements.txt ./
+      23  RUN pip install --no-cache-dir -r requirements.txt
+      24 
+      25 -COPY server.py build_cv.py ./                                  
+      25 +COPY server.py build_cv.py db.py ./                            
+      26  COPY --from=frontend /app/web/dist ./web/dist
+      27 
+      28  EXPOSE 5000
+
+● Update(~/Work/dvsource/jobhunting2026/apps/cv2/docker-compose.yml)
+  ⎿  Added 1 line
+      5        - "5000:5000"
+      6      volumes:
+      7        - ./cv.json:/app/cv.json
+      8 +      - ./cv_history.db:/app/cv_history.db                      
+
+● Let me verify the final state of all modified files:
+
+● Read 3 files (ctrl+o to expand)
+
+● Let me also verify the key modified sections of App.tsx:
+
+● Read 1 file (ctrl+o to expand)
+
+● Let me check the header area with the dropdown:
+
+● Read 1 file (ctrl+o to expand)
+
+● Now let me run the TypeScript build to check for any type errors:
+
+● Bash(cd /home/vfourkeight/Work/dvsource/jobhunting2026/apps/cv2/web && npx tsc
+       --noEmit 2>&1)
+  ⎿  (No output)
+
+● TypeScript compiles clean. Let me also do a quick Python syntax check:
+
+● Bash(python3 -c "import py_compile; py_compile.compile('/home/vfourkeight/Work
+      /dvsource/jobhunting2026/apps/cv2/db.py', doraise=True); print('db.py
+      OK')" && python3…)
+  ⎿  db.py OK
+     server.py OK
+
+● All done. Here's a summary of what was implemented:
+
+  New file: db.py — SQLite module with WAL mode, cv_versions table, and
+  functions: init_db(), seed_from_json(), save_version(), get_latest(),
+  list_versions(), get_version()
+
+  Modified: server.py
+  - Imports and initializes DB at startup, seeds from cv.json if DB is empty
+  - GET /api/cv — loads from DB first, falls back to cv.json
+  - PUT /api/cv — writes cv.json + saves a versioned snapshot (source: manual)
+  - POST /api/generate — saves a versioned snapshot (source: generate) before
+  PDF build
+  - New GET /api/versions — returns version list (no data blobs)
+  - New GET /api/versions/<id> — returns full version with parsed data
+
+  Modified: web/src/App.tsx
+  - versions and activeVersionId state
+  - Parallel fetch of /api/cv + /api/versions on mount
+  - refreshVersions() called after save and generate
+  - restoreVersion() fetches a version, sets data, clears PDF preview
+  - Clock icon + <select> dropdown in the header showing formatted timestamps
+  with source labels (Save/PDF/Import)
+
+  Modified: Dockerfile — added db.py to the COPY line
+
+  Modified: docker-compose.yml — added cv_history.db volume mount
+
+✻ Crunched for 2m 30s
+
+❯ cv2 master  ? ❯ docker logs 71b414c2974f                                 
+  Traceback (most recent call last):                                        
+    File "/app/server.py", line 18, in <module>                             
+      init_db()                                                             
+      ~~~~~~~^^                                                             
+    File "/app/db.py", line 16, in init_db                                  
+      conn = _connect()                                                     
+    File "/app/db.py", line 10, in _connect                                 
+      conn = sqlite3.connect(DB_PATH)                                       
+  sqlite3.OperationalError: unable to open database file                    
+
+● The problem is that Docker bind-mounting a non-existent file (cv_history.db)
+  creates a directory instead, which SQLite can't open. The fix is to use a
+  named volume for the DB data.
+
+● Read 2 files (ctrl+o to expand)
+
+● Update(~/Work/dvsource/jobhunting2026/apps/cv2/docker-compose.yml)
+  ⎿  Added 6 lines, removed 1 line
+       5        - "5000:5000"
+       6      volumes:
+       7        - ./cv.json:/app/cv.json
+       8 -      - ./cv_history.db:/app/cv_history.db                     
+       8 +      - cv-db:/app/db-data                                     
+       9 +    environment:                                               
+      10 +      - CV_DB_PATH=/app/db-data/cv_history.db                  
+      11 +                                                               
+      12 +volumes:                                                       
+      13 +  cv-db:                                                       
+
+● Also need to clean up the host-side directory that Docker created from the
+  failed bind mount:
+
+● Read 1 file (ctrl+o to expand)
+
+● Yep, Docker created it as a directory (owned by root). Let me remove it:
+
+● Bash(sudo rmdir
+      /home/vfourkeight/Work/dvsource/jobhunting2026/apps/cv2/cv_history.db)
+  ⎿  Error: Exit code 1
+     sudo: a terminal is required to read the password; either use the -S option
+     to read from standard input or configure an askpass helper
+     sudo: a password is required
+
+
+● Bash(rmdir
+      /home/vfourkeight/Work/dvsource/jobhunting2026/apps/cv2/cv_history.db 2>&1
+       || echo "Need sudo - user should run: sudo rmdir cv_history.db")
+  ⎿  Done
+
+● Good, it worked. Now rebuild and test:
+
+● Bash(cd /home/vfourkeight/Work/dvsource/jobhunting2026/apps/cv2 && docker
+      compose up --build -d 2>&1)
+  ⎿   Image cv2-cv-editor Building
+     #1 [internal] load local bake definitions
+     #1 reading from stdin 566B done
+     … +41 lines (ctrl+o to expand)
+
+● Bash(docker logs cv2-cv-editor-1 2>&1)
+  ⎿   * Serving Flask app 'server'
+      * Debug mode: on
+     WARNING: This is a development server. Do not use it in a production d
+     … +8 lines (ctrl+o to expand)
+
+● Server is running clean. Let me verify the API is working:
+
+● Bash(curl -s http://localhost:5000/api/versions | python3 -m json.tool 2>&1)
+  ⎿  [
+         {
+             "created_at": "2026-02-14T15:01:48Z",
+     … +4 lines (ctrl+o to expand)
+
+● Fixed. The issue was that Docker bind-mounting a non-existent file creates a
+  directory instead. The fix:
+
+  - docker-compose.yml: replaced the direct file bind mount with a named volume
+  (cv-db:/app/db-data) and set CV_DB_PATH=/app/db-data/cv_history.db via
+  environment variable
+  - Removed the empty cv_history.db directory Docker had created on the host
+
+  The DB is now seeded from cv.json (version 1 with source "import") and the
+  container starts cleanly.
+
+✻ Brewed for 1m 22s
+
+❯ if my summary has line breaks i want them have in the pdf too. update     
+  build_cv.py                                                               
+
+● Read 1 file (ctrl+o to expand)
+
+● The issue is on line 406 — the summary is passed as a single Paragraph with
+  esc() which strips newlines. Need to convert \n to <br/> tags so ReportLab
+  renders them as line breaks.
+
+● Update(~/Work/dvsource/jobhunting2026/apps/cv2/build_cv.py)
+  ⎿  Added 2 lines, removed 1 line
+      403 
+      404      # Professional Summary
+      405      story.extend(section_header("Professional Summary", styles
+           ))
+      406 -    story.append(Paragraph(esc(data.get("summary", "")), style
+          -s["summary"]))                                                
+      406 +    summary = esc(data.get("summary", "")).replace("\n", "<br/
+          +>")                                                           
+      407 +    story.append(Paragraph(summary, styles["summary"]))       
+      408 
+      409      # Skills
+      410      story.extend(build_skills(data.get("skills", []), styles))
+
+● That's it — esc() runs first to sanitize the text, then \n characters are
+  replaced with <br/> tags that ReportLab's Paragraph renders as line breaks.
+
+❯                                                                           
+  /exit                                                                     
+
+● Goodbye!
+
+❯ in the experience section you should break the point when the input has   
+  line breask                                                               
+  i have entered a description with multiple line breaks (mutiple points)   
+  but in the pdf i can only see it as a one point                           
+
+● Read 1 file (ctrl+o to expand)
+
+● The problem is on line 309 — it splits on ". " (period-space) to create bullet
+   points, completely ignoring line breaks. It should split on newlines instead.
+
+● Update(~/Work/dvsource/jobhunting2026/apps/cv2/build_cv.py)
+  ⎿  Added 3 lines, removed 5 lines
+      306 
+      307              desc = role.get("description", "")
+      308              if desc:
+      309 -                sentences = [s.strip() for s in desc.split(". 
+          -") if s.strip()]                                              
+      310 -                for sent in sentences:                        
+      311 -                    if not sent.endswith("."):                
+      312 -                        sent += "."                           
+      309 +                lines = [l.strip() for l in desc.split("\n") i
+          +f l.strip()]                                                  
+      310 +                for line in lines:                            
+      311                      items.append(
+      314 -                        Paragraph(f"\xb7{NBSP * 2}{esc(sent)}"
+          -, styles["bullet"])                                           
+      312 +                        Paragraph(f"\xb7{NBSP * 2}{esc(line)}"
+          +, styles["bullet"])                                           
+      313                      )
+      314 
+      315              items.append(Spacer(1, 2.5 * mm))
+
+● Now each line in the description textarea becomes its own bullet point in the
+  PDF, split on \n instead of ". ".
+
+❯ i need to be able to add line break in between experienced inside the the 
+   same company                                                             
+
+● So you want a page break option on individual roles within a company, not just
+   on the company itself. Let me check the current state.
+
+● Read 1 file (ctrl+o to expand)
+
+● Now let me check the PDF builder for how roles are rendered:
+
+● Read 1 file (ctrl+o to expand)
+
+● Three changes needed: add pageBreakAfter to the Role interface, add the
+  checkbox in the role UI, and handle it in the PDF builder.
+
+● Update(src/App.tsx)
+  ⎿  Added 1 line
+      13    title: string;
+      14    period: string;
+      15    description: string;
+      16 +  pageBreakAfter?: boolean;                                    
+      17  }
+      18 
+      19  interface Experience {
+
+● Now add the checkbox to each role, right before the delete button:
+
+● Update(src/App.tsx)
+  ⎿  Added 29 lines, removed 11 lines
+      637                          }
+      638                        />
+      639                      </label>
+      640 -                    <button                                   
+      641 -                      className="p-1.5 text-gray-400 hover:tex
+          -t-red-500 hover:bg-red-50 rounded-md transition-colors duratio
+          -n-150 cursor-pointer"                                         
+      642 -                      onClick={() =>                          
+      643 -                        update((d) => {                       
+      644 -                          d.experience[ei].roles.splice(ri, 1)
+          -;                                                             
+      645 -                        })                                    
+      646 -                      }                                       
+      647 -                      title="Remove role"                     
+      648 -                    >                                         
+      649 -                      <TrashIcon />                           
+      650 -                    </button>                                 
+      640 +                    <div className="flex items-center gap-2"> 
+      641 +                      <label className="inline-flex flex-row i
+          +tems-center gap-1.5 cursor-pointer select-none">              
+      642 +                        <input                                
+      643 +                          type="checkbox"                     
+      644 +                          className="accent-[#1b2a4a]"        
+      645 +                          checked={!!role.pageBreakAfter}     
+      646 +                          onChange={(e) =>                    
+      647 +                            update((d) => {                   
+      648 +                              d.experience[ei].roles[ri].pageB
+          +reakAfter =                                                   
+      649 +                                e.target.checked;             
+      650 +                            })                                
+      651 +                          }                                   
+      652 +                        />                                    
+      653 +                        <span className="text-xs text-gray-400
+          +">                                                            
+      654 +                          Page break after                    
+      655 +                        </span>                               
+      656 +                      </label>                                
+      657 +                      <button                                 
+      658 +                        className="p-1.5 text-gray-400 hover:t
+          +ext-red-500 hover:bg-red-50 rounded-md transition-colors durat
+          +ion-150 cursor-pointer"                                       
+      659 +                        onClick={() =>                        
+      660 +                          update((d) => {                     
+      661 +                            d.experience[ei].roles.splice(ri, 
+          +1);                                                           
+      662 +                          })                                  
+      663 +                        }                                     
+      664 +                        title="Remove role"                   
+      665 +                      >                                       
+      666 +                        <TrashIcon />                         
+      667 +                      </button>                               
+      668 +                    </div>                                    
+      669                    </div>
+      670                  ))}
+      671                  <div className="flex items-center gap-3 mt-2">
+
+● Now update the PDF builder to insert a PageBreak after a role when
+  pageBreakAfter is set:
+
+● Update(~/Work/dvsource/jobhunting2026/apps/cv2/build_cv.py)
+  ⎿  Added 3 lines
+      314 
+      315              items.append(Spacer(1, 2.5 * mm))
+      316 
+      317 +            if role.get("pageBreakAfter"):                    
+      318 +                items.append(PageBreak())                     
+      319 +                                                              
+      320          if exp.get("pageBreakAfter"):
+      321              items.append(PageBreak())
+      322 
+
+● Done. Each role now has its own "Page break after" checkbox, and the PDF
+  builder inserts a page break after that role's bullet points when checked.
+
+✻ Churned for 40s
+
+❯ now add a new section after the Education called "Interests"              
+  it is a simple list of text items in point form (like how we display the  
+  description of experience item)                                           
+  update the python, react, json, history, everything related               
+
+● Read 4 files (ctrl+o to expand)
+
+● I see cv.json already has an interests field but as an object with categories.
+   The plan says simple list of text items in point form, so I'll make it a
+  string array. Let me also check the education UI section ending to know where
+  to add the Interests UI.
+
+● Read 2 files (ctrl+o to expand)
+
+● Good, I have everything I need. Now let me make all the changes.
+
+● Update(~/Work/dvsource/jobhunting2026/apps/cv2/cv.json)
+  ⎿  Added 3 lines, removed 3 lines
+      83        "focus": ["G.C.E A/L - Mathematics", "Physics", "Chemistr
+          y"]
+      84      }
+      85    ],
+      86 -  "interests": {                                               
+      87 -    "reading": ["Fiction", "Non-Fiction", "Technical books"]   
+      88 -  }                                                            
+      86 +  "interests": [                                               
+      87 +    "Reading — Fiction, Non-Fiction, Technical books"          
+      88 +  ]                                                            
+      89  }
+
+● Update(src/App.tsx)
+  ⎿  Added 1 line
+      48    experience: Experience[];
+      49    projects: Project[];
+      50    education: Education[];
+      51 +  interests: string[];                                         
+      52  }
+      53 
+      54  interface VersionSummary {
+
+● Update(src/App.tsx)
+  ⎿  Added 44 lines
+      904                <span className="text-lg leading-none">+</span>
+           Add Education
+      905              </button>
+      906            </Section>
+      907 +                                                              
+      908 +          {/* Interests */}                                   
+      909 +          <Section                                            
+      910 +            title="Interests"                                 
+      911 +            count={data.interests.length}                     
+      912 +            open={isOpen("interests")}                        
+      913 +            onToggle={() => toggleSection("interests")}       
+      914 +          >                                                   
+      915 +            {data.interests.map((item, ii) => (               
+      916 +              <div key={ii} className="flex gap-2 items-center
+          + mb-3">                                                       
+      917 +                <input                                        
+      918 +                  className={`flex-1 ${inputClasses}`}        
+      919 +                  placeholder="Interest"                      
+      920 +                  value={item}                                
+      921 +                  onChange={(e) =>                            
+      922 +                    update((d) => {                           
+      923 +                      d.interests[ii] = e.target.value;       
+      924 +                    })                                        
+      925 +                  }                                           
+      926 +                />                                            
+      927 +                <button                                       
+      928 +                  className="p-1.5 text-gray-400 hover:text-re
+          +d-500 hover:bg-red-50 rounded-md transition-colors duration-15
+          +0 cursor-pointer shrink-0"                                    
+      929 +                  onClick={() =>                              
+      930 +                    update((d) => {                           
+      931 +                      d.interests.splice(ii, 1);              
+      932 +                    })                                        
+      933 +                  }                                           
+      934 +                  title="Remove interest"                     
+      935 +                >                                             
+      936 +                  <TrashIcon />                               
+      937 +                </button>                                     
+      938 +              </div>                                          
+      939 +            ))}                                               
+      940 +            <button                                           
+      941 +              className={addBtnClasses}                       
+      942 +              onClick={() =>                                  
+      943 +                update((d) => {                               
+      944 +                  d.interests.push("");                       
+      945 +                })                                            
+      946 +              }                                               
+      947 +            >                                                 
+      948 +              <span className="text-lg leading-none">+</span> 
+          +Add Interest                                                  
+      949 +            </button>                                         
+      950 +          </Section>                                          
+      951          </div>
+      952 
+      953          {/* Preview Panel */}
+
+● Now add the build_interests function in build_cv.py and call it from
+  build_pdf:
+
+● Update(~/Work/dvsource/jobhunting2026/apps/cv2/build_cv.py)
+  ⎿  Added 14 lines
+      386      return items
+      387 
+      388 
+      389 +def build_interests(interests: list, styles: dict) -> list:   
+      390 +    """Build the interests section."""                        
+      391 +    items = section_header("Interests", styles)               
+      392 +                                                              
+      393 +    for interest in interests:                                
+      394 +        text = interest.strip() if isinstance(interest, str) e
+          +lse str(interest)                                             
+      395 +        if text:                                              
+      396 +            items.append(                                     
+      397 +                Paragraph(f"\xb7{NBSP * 2}{esc(text)}", styles
+          +["bullet"])                                                   
+      398 +            )                                                 
+      399 +                                                              
+      400 +    return items                                              
+      401 +                                                              
+      402 +                                                              
+      403  # ── Main ────────────────────────────────────────────────────
+           ───
+      404 
+      405 
+
+● Update(~/Work/dvsource/jobhunting2026/apps/cv2/build_cv.py)
+  ⎿  Added 5 lines
+      433      # Education
+      434      story.extend(build_education(data.get("education", []), st
+           yles, content_width))
+      435 
+      436 +    # Interests                                               
+      437 +    interests = data.get("interests", [])                     
+      438 +    if interests:                                             
+      439 +        story.extend(build_interests(interests, styles))      
+      440 +                                                              
+      441      doc = BaseDocTemplate(
+      442          output_path,
+      443          pagesize=A4,
+
+● Now add interests to the empty skeleton in server.py:
+
+● Update(~/Work/dvsource/jobhunting2026/apps/cv2/server.py)
+  ⎿  Added 1 line
+      32              "experience": [],
+      33              "projects": [],
+      34              "education": [],
+      35 +            "interests": [],                                   
+      36          }
+      37      return jsonify(data)
+      38 
+
+● Quick type check:
+
+● Bash(python3 -c "import py_compile; py_compile.compile('/home/vfourkeight/Work
+      /dvsource/jobhunting2026/apps/cv2/build_cv.py', doraise=True);
+      print('OK')")
+  ⎿  OK
+
+● All clean. Here's what changed:
+
+  - cv.json — converted interests from an object to a string[]
+  - web/src/App.tsx — added interests: string[] to CvData, added an Interests
+  section after Education with text inputs, add/remove buttons
+  - build_cv.py — added build_interests() that renders each item as a bullet
+  point (same · style as experience descriptions), called from build_pdf after
+  Education
+  - server.py — added interests: [] to the empty fallback skeleton
+
+✻ Cooked for 1m 19s
+
+❯ index-DWvLSjvr.js:9 Uncaught TypeError: A.interests.map is not a function 
+      at vv (index-DWvLSjvr.js:9:53633)                                     
+      at wc (index-DWvLSjvr.js:8:47914)                                     
+      at ri (index-DWvLSjvr.js:8:70653)                                     
+      at Lo (index-DWvLSjvr.js:8:80979)                                     
+      at p0 (index-DWvLSjvr.js:8:116643)                                    
+      at ir (index-DWvLSjvr.js:8:115703)                                    
+      at Ri (index-DWvLSjvr.js:8:115538)                                    
+      at v0 (index-DWvLSjvr.js:8:112356)                                    
+      at C0 (index-DWvLSjvr.js:8:124077)                                    
+      at MessagePort.M (index-DWvLSjvr.js:1:10614)                          
+                                                                            
+
+● The DB's latest version still has the old interests object format ({"reading":
+   [...]}). Need to guard against non-array data.
+
+● Read 1 file (ctrl+o to expand)
+
+● Simplest fix — normalize interests to an array when setting data, so old
+  versions with the object format don't crash:
+
+● Update(src/App.tsx)
+  ⎿  Added 1 line
+      252        fetch("/api/cv").then((r) => r.json()),
+      253        fetch("/api/versions").then((r) => r.json()),
+      254      ]).then(([cvData, versionList]) => {
+      255 +      if (!Array.isArray(cvData.interests)) cvData.interests =
+          + [];                                                          
+      256        setData(cvData);
+      257        setVersions(versionList);
+      258        if (versionList.length > 0) setActiveVersionId(versionLi
+           st[0].id);
+
+● Same guard in restoreVersion:
+
+● Read 1 file (ctrl+o to expand)
+
+● Update(src/App.tsx)
+  ⎿  Added 1 line
+      355        const res = await fetch(`/api/versions/${id}`);
+      356        if (!res.ok) throw new Error("Fetch failed");
+      357        const version = await res.json();
+      358 +      if (!Array.isArray(version.data.interests)) version.data
+          +.interests = [];                                              
+      359        setData(version.data);
+      360        setActiveVersionId(id);
+      361        if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+
+● The old version in the DB has interests as an object. Both data load paths now
+   normalize it to [] if it's not already an array. Saving once will store the
+  correct format going forward.
+
+✻ Churned for 37s
+
+❯ download does not work, i think it save history version, but not the      
+  actual pdf file download from web                                         
+
+● Read 1 file (ctrl+o to expand)
+
+● The "Download" button calls save() which only saves data to the API — it never
+   downloads the PDF. I'll make it actually generate and trigger a file
+  download.
+
+● Read 1 file (ctrl+o to expand)
+
+● I'll add a download function that generates the PDF and triggers a browser
+  file download, then wire it to the Download button:
+
+● Update(src/App.tsx)
+  ⎿  Added 25 lines
+      347      }
+      348    };
+      349 
+      350 +  const download = async () => {                              
+      351 +    setLoading(true);                                         
+      352 +    try {                                                     
+      353 +      const res = await fetch("/api/generate", {              
+      354 +        method: "POST",                                       
+      355 +        headers: { "Content-Type": "application/json" },      
+      356 +        body: JSON.stringify(data),                           
+      357 +      });                                                     
+      358 +      if (!res.ok) throw new Error("Generation failed");      
+      359 +      const blob = await res.blob();                          
+      360 +      const url = URL.createObjectURL(blob);                  
+      361 +      const a = document.createElement("a");                  
+      362 +      a.href = url;                                           
+      363 +      a.download = `${data?.contact.name || "cv"}.pdf`;       
+      364 +      a.click();                                              
+      365 +      URL.revokeObjectURL(url);                               
+      366 +      showToast("PDF downloaded", "success");                 
+      367 +      refreshVersions();                                      
+      368 +    } catch {                                                 
+      369 +      showToast("Failed to download PDF", "error");           
+      370 +    } finally {                                               
+      371 +      setLoading(false);                                      
+      372 +    }                                                         
+      373 +  };                                                          
+      374 +                                                              
+      375    const restoreVersion = async (id: number) => {
+      376      try {
+      377        const res = await fetch(`/api/versions/${id}`);
+
+● Now wire the Download button to download instead of save:
+
+● Update(src/App.tsx)
+  ⎿  Added 2 lines, removed 1 line
+      464              {loading ? "Generating..." : "Generate PDF"}
+      465            </button>
+      466            <button
+      467 -            onClick={save}                                    
+      467 +            onClick={download}                                
+      468 +            disabled={loading}                                
+      469              className="flex items-center gap-1.5 px-4 py-1.5 t
+           ext-sm bg-white text-[#1b2a4a] font-medium rounded-md hover:bg
+           -gray-100 transition-colors duration-150 cursor-pointer disabl
+           ed:opacity-60 disabled:cursor-not-allowed shadow-sm"
+      470            >
+      471              <SaveIcon />
+
+● The "Download" button now generates the PDF and triggers a browser file
+  download (named after the contact name). "Generate PDF" still previews in the
+  iframe as before.
+
+✻ Cooked for 41s
+
+❯  => [frontend 5/6] COPY web/ ./                                  0.1s     
+   => ERROR [frontend 6/6] RUN npm run build                       1.2s     
+  ------                                                                    
+   > [frontend 6/6] RUN npm run build:                                      
+  0.214                                                                     
+  0.214 > web@0.0.0 build                                                   
+  0.214 > tsc -b && vite build                                              
+  0.214                                                                     
+  0.873 src/App.tsx(334,9): error TS6133: 'save' is declared but its value  
+  is never read.                                                            
+  ------                                                                    
+  [+] build 0/1                                                             
+   ⠙ Image cv2-cv-editor Building                                   3.3s    
+  Dockerfile:7                                                              
+                                                                            
+  --------------------                                                      
+                                                                            
+     5 |     RUN npm ci                                                     
+                                                                            
+     6 |     COPY web/ ./                                                   
+                                                                            
+     7 | >>> RUN npm run build                                              
+                                                                            
+     8 |                                                                    
+                                                                            
+     9 |     # Stage 2: Python runtime                                      
+                                                                            
+  --------------------                                                      
+                                                                            
+  failed to solve: process "/bin/sh -c npm run build" did not complete      
+  successfully: exit code: 2                                                
+
+● save is no longer called anywhere. Remove it.
+
+● Update(src/App.tsx)
+  ⎿  Removed 16 lines
+      331      }
+      332    };
+      333 
+      334 -  const save = async () => {                                  
+      335 -    try {                                                     
+      336 -      const res = await fetch("/api/cv", {                    
+      337 -        method: "PUT",                                        
+      338 -        headers: { "Content-Type": "application/json" },      
+      339 -        body: JSON.stringify(data),                           
+      340 -      });                                                     
+      341 -      if (!res.ok) throw new Error("Save failed");            
+      342 -      setUnsaved(false);                                      
+      343 -      showToast("CV saved successfully", "success");          
+      344 -      refreshVersions();                                      
+      345 -    } catch {                                                 
+      346 -      showToast("Failed to save CV", "error");                
+      347 -    }                                                         
+      348 -  };                                                          
+      349 -                                                              
+      334    const download = async () => {
+      335      setLoading(true);
+      336      try {
+
+● Wait — save was also used to persist data to the API (PUT /api/cv). The
+  download function only generates PDF, it doesn't save the JSON. Let me check
+  if generate on the backend already saves a version.
+
+● Read 1 file (ctrl+o to expand)
+
+● Good — /api/generate already calls save_version, so data is persisted to the
+  DB on both generate and download. But cv.json on disk won't be updated anymore
+   since we removed save. Let me add cv.json writing into the generate endpoint
+  so it stays in sync:
+
+● Update(~/Work/dvsource/jobhunting2026/apps/cv2/server.py)
+  ⎿  Added 1 line
+      47  @app.post("/api/generate")
+      48  def generate():
+      49      data = request.get_json()
+      50 +    CV_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=
+         +False) + "\n")                                                 
+      51      save_version(data, "generate")
+      52      with tempfile.NamedTemporaryFile(suffix=".pdf", delete=Fals
+          e) as tmp:
+      53          build_pdf(data, tmp.name)
+
+● Now verify it compiles:
+
+● Bash(npx tsc --noEmit 2>&1)
+  ⎿  (No output)
+
+● Clean. Removed the unused save function, and moved cv.json writing into the
+  /api/generate endpoint so it stays in sync when generating/downloading.
+
+❯ docker compose up --build 
+
+● Bash(cd /home/vfourkeight/Work/dvsource/jobhunting2026/apps/cv2 && docker
+      compose up --build -d 2>&1)
+  ⎿  Interrupted · What should Claude do instead?
+
+❯ the interest section is missing 
+
+● Read 1 file (ctrl+o to expand)
+
+● The build_interests call is missing from build_pdf — it got lost when the file
+   was modified externally. Let me also check if the function itself exists:
+
+● Searched for 1 pattern (ctrl+o to expand)
+
+● Both the function and the call are gone. Let me re-add them:
+
+● Update(~/Work/dvsource/jobhunting2026/apps/cv2/build_cv.py)
+  ⎿  Added 14 lines
+      386      return items
+      387 
+      388 
+      389 +def build_interests(interests: list, styles: dict) -> list:   
+      390 +    """Build the interests section."""                        
+      391 +    items = section_header("Interests", styles)               
+      392 +                                                              
+      393 +    for interest in interests:                                
+      394 +        text = interest.strip() if isinstance(interest, str) e
+          +lse str(interest)                                             
+      395 +        if text:                                              
+      396 +            items.append(                                     
+      397 +                Paragraph(f"\xb7{NBSP * 2}{esc(text)}", styles
+          +["bullet"])                                                   
+      398 +            )                                                 
+      399 +                                                              
+      400 +    return items                                              
+      401 +                                                              
+      402 +                                                              
+      403  # ── Main ────────────────────────────────────────────────────
+           ───
+      404 
+      405 
+
+● Update(~/Work/dvsource/jobhunting2026/apps/cv2/build_cv.py)
+  ⎿  Added 5 lines
+      433      # Education
+      434      story.extend(build_education(data.get("education", []), st
+           yles, content_width))
+      435 
+      436 +    # Interests                                               
+      437 +    interests = data.get("interests", [])                     
+      438 +    if interests:                                             
+      439 +        story.extend(build_interests(interests, styles))      
+      440 +                                                              
+      441      doc = BaseDocTemplate(
+      442          output_path,
+      443          pagesize=A4,
+
+● Both the build_interests function and its call in build_pdf were missing —
+  re-added them. The Interests section will now render as bullet points after
+  Education in the PDF.
+
+❯ docker compose up --build 
+  ⎿  Interrupted · What should Claude do instead?
+
+❯ can't see the interest section in frontend 
+
+● Searched for 1 pattern (ctrl+o to expand)
+
+● The entire Interests section got wiped from App.tsx too. Let me see where to
+  re-add it:
+
+● Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Both the interface field and the UI section are gone. Re-adding both:
+
+● Update(src/App.tsx)
+  ⎿  Added 1 line
+      47    experience: Experience[];
+      48    projects: Project[];
+      49    education: Education[];
+      50 +  interests: string[];                                         
+      51  }
+      52 
+      53  interface VersionSummary {
+
+● Update(src/App.tsx)
+  ⎿  Added 44 lines
+      895                <span className="text-lg leading-none">+</span>
+           Add Education
+      896              </button>
+      897            </Section>
+      898 +                                                              
+      899 +          {/* Interests */}                                   
+      900 +          <Section                                            
+      901 +            title="Interests"                                 
+      902 +            count={data.interests.length}                     
+      903 +            open={isOpen("interests")}                        
+      904 +            onToggle={() => toggleSection("interests")}       
+      905 +          >                                                   
+      906 +            {data.interests.map((item, ii) => (               
+      907 +              <div key={ii} className="flex gap-2 items-center
+          + mb-3">                                                       
+      908 +                <input                                        
+      909 +                  className={`flex-1 ${inputClasses}`}        
+      910 +                  placeholder="Interest"                      
+      911 +                  value={item}                                
+      912 +                  onChange={(e) =>                            
+      913 +                    update((d) => {                           
+      914 +                      d.interests[ii] = e.target.value;       
+      915 +                    })                                        
+      916 +                  }                                           
+      917 +                />                                            
+      918 +                <button                                       
+      919 +                  className="p-1.5 text-gray-400 hover:text-re
+          +d-500 hover:bg-red-50 rounded-md transition-colors duration-15
+          +0 cursor-pointer shrink-0"                                    
+      920 +                  onClick={() =>                              
+      921 +                    update((d) => {                           
+      922 +                      d.interests.splice(ii, 1);              
+      923 +                    })                                        
+      924 +                  }                                           
+      925 +                  title="Remove interest"                     
+      926 +                >                                             
+      927 +                  <TrashIcon />                               
+      928 +                </button>                                     
+      929 +              </div>                                          
+      930 +            ))}                                               
+      931 +            <button                                           
+      932 +              className={addBtnClasses}                       
+      933 +              onClick={() =>                                  
+      934 +                update((d) => {                               
+      935 +                  d.interests.push("");                       
+      936 +                })                                            
+      937 +              }                                               
+      938 +            >                                                 
+      939 +              <span className="text-lg leading-none">+</span> 
+          +Add Interest                                                  
+      940 +            </button>                                         
+      941 +          </Section>                                          
+      942          </div>
+      943 
+      944          {/* Preview Panel */}
+
+● Also need the Array.isArray guard back since old DB versions won't have
+  interests as an array:
+
+● Searched for 1 pattern (ctrl+o to expand)
+
+● Those guards are gone too. Re-adding:
+
+● Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Update(src/App.tsx)
+  ⎿  Added 1 line
+      251        fetch("/api/cv").then((r) => r.json()),
+      252        fetch("/api/versions").then((r) => r.json()),
+      253      ]).then(([cvData, versionList]) => {
+      254 +      if (!Array.isArray(cvData.interests)) cvData.interests =
+          + [];                                                          
+      255        setData(cvData);
+      256        setVersions(versionList);
+      257        if (versionList.length > 0) setActiveVersionId(versionLi
+           st[0].id);
+
+● Update(src/App.tsx)
+  ⎿  Added 1 line
+      363        const res = await fetch(`/api/versions/${id}`);
+      364        if (!res.ok) throw new Error("Fetch failed");
+      365        const version = await res.json();
+      366 +      if (!Array.isArray(version.data.interests)) version.data
+          +.interests = [];                                              
+      367        setData(version.data);
+      368        setActiveVersionId(id);
+      369        if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+
+● Bash(npx tsc --noEmit 2>&1)
+  ⎿  (No output)
+
+● All restored — interests: string[] in the interface, the Interests section UI
+  after Education, and the Array.isArray guards on both data load paths. Ready
+  to rebuild.
+
+✻ Baked for 1m 11s
+
+❯ add point form representation to project descriptions same as expeirence 
+
+● Read 1 file (ctrl+o to expand)
+
+● Update(~/Work/dvsource/jobhunting2026/apps/cv2/build_cv.py)
+  ⎿  Added 5 lines, removed 1 line
+      330      for proj in projects:
+      331          items.append(Paragraph(f"<b>{esc(proj['name'])}</b>",
+           styles["proj_name"]))
+      332          if proj.get("description"):
+      333 -            items.append(Paragraph(esc(proj["description"]), s
+          -tyles["proj_desc"]))                                          
+      333 +            lines = [l.strip() for l in proj["description"].sp
+          +lit("\n") if l.strip()]                                       
+      334 +            for line in lines:                                
+      335 +                items.append(                                 
+      336 +                    Paragraph(f"\xb7{NBSP * 2}{esc(line)}", st
+          +yles["proj_desc"])                                            
+      337 +                )                                             
+      338          items.append(Spacer(1, 2 * mm))
+      339          if proj.get("pageBreakAfter"):
+      340              items.append(PageBreak())
+
+● Done. Project descriptions now split on line breaks into bullet points, same
+  as experience.
+
+❯ i need a way to save my current state of the form into a json, and later  
+  upload it and populate values, so i could be able to transport my cv2     
+  someone to edit you know                                                  
+
+● Read 1 file (ctrl+o to expand)
+
+● I'll add export/import functions and two buttons in the header. I need useRef
+  for the hidden file input.
+
+● Update(src/App.tsx)
+  ⎿  Added 1 line, removed 1 line
+      1 -import { useState, useEffect, useCallback } from "react";       
+      1 +import { useState, useEffect, useCallback, useRef } from "react"
+        +;                                                               
+      2 
+      3  interface Contact {
+      4    name: string;
+
+● Now add the export/import functions before the return:
+
+● Update(src/App.tsx)
+  ⎿  Added 34 lines
+      375      }
+      376    };
+      377 
+      378 +  const fileInputRef = useRef<HTMLInputElement>(null);        
+      379 +                                                              
+      380 +  const exportJson = () => {                                  
+      381 +    const blob = new Blob([JSON.stringify(data, null, 2)], { t
+          +ype: "application/json" });                                   
+      382 +    const url = URL.createObjectURL(blob);                    
+      383 +    const a = document.createElement("a");                    
+      384 +    a.href = url;                                             
+      385 +    a.download = `${data?.contact.name || "cv"}.json`;        
+      386 +    a.click();                                                
+      387 +    URL.revokeObjectURL(url);                                 
+      388 +    showToast("JSON exported", "success");                    
+      389 +  };                                                          
+      390 +                                                              
+      391 +  const importJson = (e: React.ChangeEvent<HTMLInputElement>) 
+          +=> {                                                          
+      392 +    const file = e.target.files?.[0];                         
+      393 +    if (!file) return;                                        
+      394 +    const reader = new FileReader();                          
+      395 +    reader.onload = () => {                                   
+      396 +      try {                                                   
+      397 +        const parsed = JSON.parse(reader.result as string);   
+      398 +        if (!Array.isArray(parsed.interests)) parsed.interests
+          + = [];                                                        
+      399 +        setData(parsed);                                      
+      400 +        setUnsaved(true);                                     
+      401 +        if (pdfUrl) URL.revokeObjectURL(pdfUrl);              
+      402 +        setPdfUrl(null);                                      
+      403 +        showToast("JSON imported", "success");                
+      404 +      } catch {                                               
+      405 +        showToast("Invalid JSON file", "error");              
+      406 +      }                                                       
+      407 +    };                                                        
+      408 +    reader.readAsText(file);                                  
+      409 +    if (fileInputRef.current) fileInputRef.current.value = "";
+      410 +  };                                                          
+      411 +                                                              
+      412    const formatVersionLabel = (v: VersionSummary) => {
+      413      const d = new Date(v.created_at + (v.created_at.endsWith("
+           Z") ? "" : "Z"));
+      414      const date = d.toLocaleDateString(undefined, {
+
+● Now add the Export/Import buttons in the header, before Generate PDF:
+
+● Update(src/App.tsx)
+  ⎿  Added 27 lines
+      477              </div>
+      478            )}
+      479            <button
+      480 +            onClick={exportJson}                              
+      481 +            className="flex items-center gap-1.5 px-3 py-1.5 t
+          +ext-sm border border-white/30 rounded-md hover:bg-white/10 tra
+          +nsition-colors duration-150 cursor-pointer"                   
+      482 +            title="Export CV as JSON"                         
+      483 +          >                                                   
+      484 +            <svg className="w-4 h-4" fill="none" viewBox="0 0 
+          +24 24" stroke="currentColor" strokeWidth={2}>                 
+      485 +              <path strokeLinecap="round" strokeLinejoin="roun
+          +d" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4
+          +m4 4V4" />                                                    
+      486 +            </svg>                                            
+      487 +            Export                                            
+      488 +          </button>                                           
+      489 +          <button                                             
+      490 +            onClick={() => fileInputRef.current?.click()}     
+      491 +            className="flex items-center gap-1.5 px-3 py-1.5 t
+          +ext-sm border border-white/30 rounded-md hover:bg-white/10 tra
+          +nsition-colors duration-150 cursor-pointer"                   
+      492 +            title="Import CV from JSON"                       
+      493 +          >                                                   
+      494 +            <svg className="w-4 h-4" fill="none" viewBox="0 0 
+          +24 24" stroke="currentColor" strokeWidth={2}>                 
+      495 +              <path strokeLinecap="round" strokeLinejoin="roun
+          +d" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m
+          +4-4v12" />                                                    
+      496 +            </svg>                                            
+      497 +            Import                                            
+      498 +          </button>                                           
+      499 +          <input                                              
+      500 +            ref={fileInputRef}                                
+      501 +            type="file"                                       
+      502 +            accept=".json"                                    
+      503 +            className="hidden"                                
+      504 +            onChange={importJson}                             
+      505 +          />                                                  
+      506 +          <button                                             
+      507              onClick={generate}
+      508              disabled={loading}
+      509              className="flex items-center gap-1.5 px-3 py-1.5 t
+           ext-sm border border-white/30 rounded-md hover:bg-white/10 tra
+           nsition-colors duration-150 cursor-pointer"
+
+● Bash(cd /home/vfourkeight/Work/dvsource/jobhunting2026/apps/cv2/web && npx tsc
+       --noEmit 2>&1)
+  ⎿  (No output)
+
+● Done. Two new buttons in the header:
+
+  - Export — downloads the current form state as <name>.json
+  - Import — opens a file picker, loads a JSON file, and populates the form
+
+  You can export on one machine, transfer the .json, and import it on another
+  instance.
+
+✻ Churned for 50s
+
+❯                                                                           
+                                                                            
+  index-D5eXM8iR.js:8 Uncaught Error: Minified React error #310; visit      
+  https://react.dev/errors/310 for the full message or use the non-minified 
+   dev environment for full errors and additional helpful warnings.         
+      at Al (index-D5eXM8iR.js:8:49191)                                     
+      at Object.eo [as useRef] (index-D5eXM8iR.js:8:55537)                  
+      at Q.useRef (index-D5eXM8iR.js:1:8634)                                
+      at vv (index-D5eXM8iR.js:9:42988)                                     
+      at wc (index-D5eXM8iR.js:8:47921)                                     
+      at mi (index-D5eXM8iR.js:8:70670)                                     
+      at Vo (index-D5eXM8iR.js:8:81001)                                     
+      at p0 (index-D5eXM8iR.js:8:116675)                                    
+      at im (index-D5eXM8iR.js:8:115735)                                    
+      at Ri (index-D5eXM8iR.js:8:115570)                                    
+  Al    @    index-D5eXM8iR.js:8                                            
+  eo    @    index-D5eXM8iR.js:8                                            
+  Q.useRef    @    index-D5eXM8iR.js:1                                      
+  vv    @    index-D5eXM8iR.js:9                                            
+  wc    @    index-D5eXM8iR.js:8                                            
+  mi    @    index-D5eXM8iR.js:8                                            
+  Vo    @    index-D5eXM8iR.js:8                                            
+  p0    @    index-D5eXM8iR.js:8                                            
+  im    @    index-D5eXM8iR.js:8                                            
+  Ri    @    index-D5eXM8iR.js:8                                            
+  v0    @    index-D5eXM8iR.js:8                                            
+  C0    @    index-D5eXM8iR.js:8                                            
+  yt    @    index-D5eXM8iR.js:1                                            
+
+● React error #310 means hooks are being called conditionally or after an early
+  return. The useRef was placed after the early return for the loading state.
+  Let me check.
+
+● Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Line 378 — the useRef is after the early return on line 296. React requires
+  all hooks to be called before any return. Move it up with the other hooks.
+
+● Update(src/App.tsx)
+  ⎿  Added 1 line
+      234    const [toast, setToast] = useState<Toast | null>(null);
+      235    const [versions, setVersions] = useState<VersionSummary[]>([
+           ]);
+      236    const [activeVersionId, setActiveVersionId] = useState<numbe
+           r | null>(null);
+      237 +  const fileInputRef = useRef<HTMLInputElement>(null);        
+      238 
+      239    const refreshVersions = useCallback(async () => {
+      240      try {
+
+● Now remove the old one from after the early return:
+
+● Update(src/App.tsx)
+  ⎿  Removed 2 lines
+      376      }
+      377    };
+      378 
+      379 -  const fileInputRef = useRef<HTMLInputElement>(null);        
+      380 -                                                              
+      379    const exportJson = () => {
+      380      const blob = new Blob([JSON.stringify(data, null, 2)], { t
+           ype: "application/json" });
+      381      const url = URL.createObjectURL(blob);
+
+● The useRef was after the early return (!data) — React hooks must all be called
+   before any conditional return. Moved it up with the other state declarations.
+
+❯ /rename export-import 
+  ⎿  Session renamed to: export-import

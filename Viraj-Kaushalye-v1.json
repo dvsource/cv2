@@ -10,20 +10,12 @@
   "education": [
     {
       "degree": "Bachelor of Science in Applied Science",
-      "focus": [
-        "Computer Science",
-        "Mathematics",
-        "Statistics"
-      ],
+      "focus": ["Computer Science", "Mathematics", "Statistics"],
       "institution": "University of Sri Jayewardenepura",
       "period": "2015 - 2018"
     },
     {
-      "focus": [
-        "G.C.E A/L - Mathematics",
-        "Physics",
-        "Chemistry"
-      ],
+      "focus": ["G.C.E A/L - Mathematics", "Physics", "Chemistry"],
       "institution": "D. S. Senanayake College",
       "period": "2006 - 2014"
     }
@@ -113,3 +105,4 @@
   ],
   "summary": "Software developer focused on building clean, maintainable, and scalable systems across the full stack. Strong interest in distributed systems, system architecture, and designing reliable software across frontend and backend systems. Passionate about exploring open-source projects to understand engineering patterns and architectural trade-offs.\nCommitted to efficiency, reliability, and automation, with a strong focus on improving developer productivity and long-term maintainability. Hands-on experience with modern AI technologies, including agent-based systems and MCP/RAG implementations, applying them to rapidly evolving development workflows."
 }
+
