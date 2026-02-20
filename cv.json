@@ -1,115 +1,117 @@
 {
   "contact": {
-    "email": "virajkaushalye1@gmail.com",
-    "github": "github.com/dvsource",
-    "linkedin": "linkedin/in/dvsource",
-    "name": "Viraj Kaushalye",
-    "phone": "+94 711 25 20 321",
-    "website": "v4k8.dev"
+    "email": "alex.chen.dev@gmail.com",
+    "github": "github.com/alexchendev",
+    "linkedin": "linkedin/in/alexchendev",
+    "name": "Alex Chen",
+    "phone": "+1 555 123 4567",
+    "website": "alexchen.io"
   },
   "education": [
     {
-      "degree": "Bachelor of Science in Applied Science",
+      "degree": "Master of Science in Computer Science",
       "focus": [
-        "Computer Science",
-        "Mathematics",
-        "Statistics"
+        "Distributed Systems",
+        "Machine Learning",
+        "Software Engineering"
       ],
-      "institution": "University of Sri Jayewardenepura",
-      "period": "2015 - 2018"
+      "institution": "Stanford University",
+      "period": "2016 - 2018"
     },
     {
+      "degree": "Bachelor of Science in Computer Engineering",
       "focus": [
-        "G.C.E A/L - Mathematics",
-        "Physics",
-        "Chemistry"
+        "Algorithms",
+        "Data Structures",
+        "Computer Architecture"
       ],
-      "institution": "D. S. Senanayake College",
-      "period": "2006 - 2014"
+      "institution": "University of California, Berkeley",
+      "period": "2012 - 2016"
     }
   ],
   "experience": [
     {
-      "company": "Matific - Sri Lanka",
+      "company": "TechNova Labs",
       "roles": [
         {
-          "description": "Built data-intensive activity pages, advanced filtering systems, reporting modules, and core admin tools using Angular and Django, optimizing performance for large datasets. (Matific - Teacher Site)\nDeveloped serverless microservices with AWS Lambda and a Rust PoC for high-performance computation, reducing operational costs.\nIncreased unit test coverage to 90%+, enhancing reliability and regression safety.\nWorked with global cross-functional teams (Mobile, Unity, Content, ML/AI, Support) to resolve production issues and improve integrations.\nContributed to company-wide UI component migration, improving consistency and maintainability.\nDelivered an Accessibility-compliant product version under tight deadlines for European and North American markets.\nBuilt a RAG-based AI agent using LangChain to assist backend support teams in troubleshooting customer issues without requiring developer intervention.",
-          "period": "2022 - 2026",
+          "description": "Led a team of 8 engineers building a real-time analytics platform processing 2M+ events per second using Kafka, Flink, and ClickHouse.\nArchitected microservices migration from monolith, reducing deployment time by 75% and improving system reliability to 99.95% uptime.\nImplemented ML-powered anomaly detection system that reduced false alerts by 60% and saved $2M annually in operational costs.\nEstablished engineering best practices including code review guidelines, testing standards, and incident response protocols.\nMentored 5 junior engineers, with 3 promoted to senior roles within 18 months.",
+          "period": "2023 - Present",
+          "title": "Staff Software Engineer"
+        },
+        {
+          "description": "Built core features for the company's flagship SaaS product serving 500+ enterprise customers.\nDesigned and implemented a plugin architecture enabling third-party integrations, increasing platform stickiness by 40%.\nOptimized database queries and caching strategies, reducing API response times from 800ms to 120ms average.",
+          "period": "2021 - 2023",
           "title": "Senior Software Engineer"
         }
       ]
     },
     {
-      "company": "Codegen International",
+      "company": "DataStream Inc.",
       "roles": [
         {
-          "description": "Developed and maintained core functionality for the company’s B2B web platform, prioritizing performance, reliability, and usability.\nBuilt Angular-based WordPress widgets, migrated components to Web Elements, and deployed scalable Docker-Kubernetes infrastructure with NGINX.\nMentored junior developers, conducted productivity workshops, and hosted ongoing developer forums to enhance team learning.",
+          "description": "Developed high-throughput data pipelines handling 50TB+ daily using Apache Spark and AWS EMR.\nBuilt real-time dashboards with React and D3.js for monitoring critical business metrics.\nContributed to open-source Spark connectors, gaining 1.2k GitHub stars.",
           "pageBreakAfter": true,
-          "period": "2020 - 2022",
-          "title": "Senior Software Engineer"
-        },
-        {
-          "description": "Migrated Angular 7 applications to Angular 9; contributed to front-end modules for B2B travel functionalities (Supplier, Insurance, Generic).\nDeveloped internal project management tools integrating Jira and GitLab APIs; built reporting modules for management insights.\nImproved B2C travel platform (FlyDubai) booking flows and UI performance.",
-          "pageBreakAfter": false,
-          "period": "2019 - 2020",
+          "period": "2019 - 2021",
           "title": "Software Engineer"
         },
         {
-          "description": "Developed a full-stack Leave Management system for the enterprise social network (Kriyo.net).\nContributed to chatbot features, reporting modules, bug fixes, and overall application improvements.",
-          "period": "2019",
-          "title": "Trainee Software Engineer"
+          "description": "Implemented ETL workflows for customer data integration projects.\nDeveloped Python automation scripts reducing manual data processing time by 80%.\nCreated comprehensive API documentation used by 50+ partner integrations.",
+          "period": "2018 - 2019",
+          "title": "Junior Software Engineer"
         }
       ]
     }
   ],
-  "interests": [],
+  "interests": [
+    "hi"
+  ],
   "projects": [
     {
-      "description": "An R&D project I developed at Matific. It is an AI-powered assistant designed to help support staff understand the logic behind product functionalities without needing to consult developers, especially when handling new or complex customer issues.\n\nBuilt using LangChain, a vector database, text embeddings, and OpenAI LLMs.",
-      "name": "RAG-based Knowledge-based Assistant"
+      "description": "An open-source distributed task scheduler built with Go and Redis.\n\nSupports cron expressions, task dependencies, retries with exponential backoff, and horizontal scaling. Used in production by 15+ companies. 3.5k GitHub stars.",
+      "name": "TaskFlow - Distributed Task Scheduler"
     },
     {
-      "description": "A project I built for my wife. It is a collection of tools designed to support her day-to-day work at school and private classes.\n\nThe system includes AI-powered features to assist with her teaching career, such as generating new Physics problem ideas, simplifying complex concepts, and helping create structured lesson plans and schedules.",
-      "name": "A/L Physics Teacher Assistant + Class Scheduler"
+      "description": "A CLI tool for managing Kubernetes deployments across multiple clusters.\n\nFeatures include diff-based deployment previews, rollback automation, and Slack notifications. Built with Rust for performance.",
+      "name": "K8s Multi-Cluster Manager"
     },
     {
-      "description": "My personal website and portfolio combined with a comprehensive life management toolkit.\n\nIt includes tools for task management, time management, habit tracking, finance and expense tracking, and TBR tracking. The system also features a CLI tool that allows me to insert and retrieve data directly from the terminal without interrupting my workflow.",
-      "name": "Personal Life Management System"
+      "description": "An AI-powered code review assistant that integrates with GitHub PRs.\n\nUses GPT-4 to analyze code changes, suggest improvements, identify potential bugs, and enforce coding standards automatically.",
+      "name": "CodeReview AI Bot"
     },
     {
-      "description": "Final-year university project — an augmented reality application built with Unity and iOS ARKit.\n\nThe application was designed to help visitors navigate large buildings by providing real-time, AR-based indoor guidance and directional assistance.",
-      "name": "AR-based Indoor Navigation Guide"
+      "description": "A personal finance tracker with ML-based expense categorization.\n\nBuilt with Next.js, PostgreSQL, and TensorFlow.js. Features include budget alerts, spending trends visualization, and bank sync via Plaid API.",
+      "name": "Smart Budget Tracker"
     }
   ],
   "skills": [
     {
-      "items": "Java, JavaScript/TypeScript, C#, Python, PHP, Go, Rust",
+      "items": "Go, Python, TypeScript, Rust, Java, C++",
       "label": "Languages"
     },
     {
-      "items": "Angular, React, Tailwind, SCSS",
+      "items": "React, Vue.js, Next.js, Tailwind CSS",
       "label": "Frontend"
     },
     {
-      "items": "Spring Boot, Node.js, Django, Flask",
+      "items": "Node.js, FastAPI, gRPC, GraphQL",
       "label": "Backend"
     },
     {
-      "items": "Next js",
-      "label": "Fullstack"
+      "items": "Kafka, Spark, Flink, Airflow",
+      "label": "Data Engineering"
     },
     {
-      "items": "Docker, Kubernetes, AWS, Jenkins",
-      "label": "CI/CD & Cloud"
+      "items": "Kubernetes, Docker, Terraform, AWS, GCP",
+      "label": "Infrastructure"
     },
     {
-      "items": "MySQL, PostgreSQL, MongoDB, Redis, Elasticsearch",
+      "items": "PostgreSQL, Redis, ClickHouse, Elasticsearch, MongoDB",
       "label": "Databases"
     },
     {
-      "items": "Unity, Tauri, Electron, React Native, Bash, Linux",
-      "label": "Other"
+      "items": "Prometheus, Grafana, Datadog, PagerDuty",
+      "label": "Observability"
     }
   ],
-  "summary": "Software developer focused on building clean, maintainable, and scalable systems across the full stack. Strong interest in distributed systems, system architecture, and designing reliable software across frontend and backend systems. Passionate about exploring open-source projects to understand engineering patterns and architectural trade-offs.\nCommitted to efficiency, reliability, and automation, with a strong focus on improving developer productivity and long-term maintainability. Hands-on experience with modern AI technologies, including agent-based systems and MCP/RAG implementations, applying them to rapidly evolving development workflows."
+  "summary": "Staff engineer with 7+ years of experience building scalable distributed systems and data platforms. Passionate about system design, performance optimization, and developer tooling. Track record of leading teams through complex technical migrations and delivering high-impact projects.\nActive open-source contributor with several popular projects. Strong advocate for engineering excellence, mentorship, and building inclusive team cultures. Currently focused on real-time analytics and ML infrastructure."
 }
