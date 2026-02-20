@@ -2,7 +2,7 @@ services:
   cv-editor:
     build: .
     ports:
-      - "5000:5000"
+      - "3000:3000"
     volumes:
       - ./cv.json:/app/cv.json
       - cv-db:/app/db-data

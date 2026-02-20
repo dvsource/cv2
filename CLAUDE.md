@@ -10,8 +10,8 @@ A full-stack CV editor: React form UI on the left, live PDF preview on the right
 
 ```bash
 # Local dev (two terminals)
-python server.py                    # Flask backend on :5000
-cd web && npm run dev               # Vite dev server on :5173 (proxies /api to :5000)
+python server.py                    # Flask backend on :3000
+cd web && npm run dev               # Vite dev server on :5173 (proxies /api to :3000)
 
 # Build frontend
 cd web && npm run build             # tsc -b && vite build → web/dist/
@@ -20,7 +20,7 @@ cd web && npm run build             # tsc -b && vite build → web/dist/
 cd web && npm run lint              # ESLint
 
 # Docker
-docker compose up --build           # Full stack on :5000, mounts cv.json
+docker compose up --build           # Full stack on :3000, mounts cv.json
 ```
 
 ## Architecture
@@ -42,7 +42,7 @@ docker compose up --build           # Full stack on :5000, mounts cv.json
 - **PDF layout**: Uses `BaseDocTemplate` with explicit zero-padding `Frame` (not `SimpleDocTemplate`) to avoid ReportLab's default 6pt frame padding messing up table column widths.
 - **Letter-spacing**: Section headers use a custom `SpacedText(Flowable)` that sets the PDF `Tc` operator directly via `canv._code.append()` — ReportLab has no public API for charSpace.
 - **Tailwind v4**: Uses `@tailwindcss/vite` plugin and `@import "tailwindcss"` (not v3 directives/config).
-- **Vite proxy**: Dev server proxies `/api` to `http://localhost:5000` (configured in `vite.config.ts`).
+- **Vite proxy**: Dev server proxies `/api` to `http://localhost:3000` (configured in `vite.config.ts`).
 
 ## CV Data Shape
 

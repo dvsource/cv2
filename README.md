@@ -10,7 +10,7 @@ A full-stack CV editor with a React form UI on the left and a live PDF preview o
 docker compose up --build
 ```
 
-Open [http://localhost:5000](http://localhost:5000).
+Open [http://localhost:3000](http://localhost:3000).
 
 ### Local Dev
 
@@ -23,11 +23,11 @@ Requires Python 3 with a virtualenv and Node.js.
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python server.py                # http://localhost:5000
+python server.py                # http://localhost:3000
 
 # Frontend (separate terminal)
 cd web && npm install
-npm run dev                     # http://localhost:5173 (proxies /api → :5000)
+npm run dev                     # http://localhost:5173 (proxies /api → :3000)
 ```
 
 ## Build
