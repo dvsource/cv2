@@ -89,11 +89,33 @@ sudo nginx -t
 sudo systemctl enable nginx
 sudo systemctl restart nginx
 
-echo "=== 6/7  Gunicorn systemd service ==="
+echo "=== 6/8  Auto-deploy on boot ==="
+sudo tee /etc/systemd/system/cv-deploy.service > /dev/null << EOF
+[Unit]
+Description=CV Editor auto-deploy (git pull + rebuild)
+After=network-online.target
+Wants=network-online.target
+Before=cv-editor.service
+
+[Service]
+Type=oneshot
+User=ec2-user
+WorkingDirectory=$APP_DIR
+ExecStart=/bin/bash $APP_DIR/deploy.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable cv-deploy
+
+echo "=== 7/8  Gunicorn systemd service ==="
 sudo tee /etc/systemd/system/cv-editor.service > /dev/null << EOF
 [Unit]
 Description=CV Editor (gunicorn)
-After=network.target
+After=network.target cv-deploy.service
 
 [Service]
 Type=simple
@@ -112,7 +134,7 @@ sudo systemctl daemon-reload
 sudo systemctl enable cv-editor
 sudo systemctl start cv-editor
 
-echo "=== 7/7  Verify ==="
+echo "=== 8/8  Verify ==="
 sleep 2
 echo ""
 if sudo systemctl is-active --quiet cv-editor; then
