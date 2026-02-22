@@ -234,6 +234,7 @@ function App() {
   const [toast, setToast] = useState<Toast | null>(null);
   const [versions, setVersions] = useState<VersionSummary[]>([]);
   const [activeVersionId, setActiveVersionId] = useState<number | null>(null);
+  const [mobileView, setMobileView] = useState<"form" | "preview">("form");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const refreshVersions = useCallback(async () => {
@@ -325,6 +326,7 @@ function App() {
       const blob = await res.blob();
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
       setPdfUrl(URL.createObjectURL(blob));
+      setMobileView("preview");
       showToast("PDF generated successfully", "success");
       refreshVersions();
     } catch {
@@ -430,7 +432,7 @@ function App() {
   return (
     <div className="flex flex-col h-screen">
       {/* Top Header Bar */}
-      <header className="bg-[#1b2a4a] text-white px-6 py-3 flex items-center justify-between shrink-0 shadow-lg z-10">
+      <header className="bg-[#1b2a4a] text-white px-3 sm:px-6 py-3 flex items-center justify-between shrink-0 shadow-lg z-10">
         <div className="flex items-center gap-3">
           <h1 className="text-lg font-semibold tracking-wide">CV Editor</h1>
           {unsaved && (
@@ -477,7 +479,7 @@ function App() {
           )}
           <button
             onClick={exportJson}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-white/30 rounded-md hover:bg-white/10 transition-colors duration-150 cursor-pointer"
+            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-sm border border-white/30 rounded-md hover:bg-white/10 transition-colors duration-150 cursor-pointer"
             title="Export CV as JSON"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -487,7 +489,7 @@ function App() {
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-white/30 rounded-md hover:bg-white/10 transition-colors duration-150 cursor-pointer"
+            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-sm border border-white/30 rounded-md hover:bg-white/10 transition-colors duration-150 cursor-pointer"
             title="Import CV from JSON"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -505,7 +507,7 @@ function App() {
           <button
             onClick={generate}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-white/30 rounded-md hover:bg-white/10 transition-colors duration-150 cursor-pointer"
+            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-sm border border-white/30 rounded-md hover:bg-white/10 transition-colors duration-150 cursor-pointer"
           >
             {loading ? <SpinnerIcon /> : <DownloadIcon />}
             {loading ? "Generating..." : "Generate PDF"}
@@ -513,7 +515,7 @@ function App() {
           <button
             onClick={download}
             disabled={loading}
-            className="flex items-center gap-1.5 px-4 py-1.5 text-sm bg-white text-[#1b2a4a] font-medium rounded-md hover:bg-gray-100 transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+            className="hidden lg:flex items-center gap-1.5 px-4 py-1.5 text-sm bg-white text-[#1b2a4a] font-medium rounded-md hover:bg-gray-100 transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
           >
             <SaveIcon />
             Download
@@ -521,16 +523,43 @@ function App() {
         </div>
       </header>
 
+      {/* Mobile View Toggle */}
+      <div className="lg:hidden flex bg-gray-50 border-b border-gray-200 shrink-0">
+        <button
+          onClick={() => setMobileView("form")}
+          className={`flex-1 py-2.5 text-sm font-medium text-center transition-colors duration-150 cursor-pointer ${
+            mobileView === "form"
+              ? "text-[#1b2a4a] border-b-2 border-[#1b2a4a]"
+              : "text-gray-400 hover:text-gray-600"
+          }`}
+        >
+          Edit
+        </button>
+        <button
+          onClick={() => setMobileView("preview")}
+          className={`flex-1 py-2.5 text-sm font-medium text-center transition-colors duration-150 cursor-pointer flex items-center justify-center gap-1.5 ${
+            mobileView === "preview"
+              ? "text-[#1b2a4a] border-b-2 border-[#1b2a4a]"
+              : "text-gray-400 hover:text-gray-600"
+          }`}
+        >
+          Preview
+          {pdfUrl && (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          )}
+        </button>
+      </div>
+
       <div className="flex flex-1 min-h-0">
         {/* Form Panel */}
-        <div className="w-[700px] shrink-0 overflow-y-auto p-8 bg-gray-50 custom-scrollbar shadow-[2px_0_8px_rgba(0,0,0,0.06)]">
+        <div className={`w-full lg:w-[700px] lg:shrink-0 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8 bg-gray-50 custom-scrollbar shadow-[2px_0_8px_rgba(0,0,0,0.06)] ${mobileView === "preview" ? "hidden lg:block" : ""}`}>
           {/* Contact */}
           <Section
             title="Contact"
             open={isOpen("contact")}
             onToggle={() => toggleSection("contact")}
           >
-            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
               {(
                 [
                   "name",
@@ -583,38 +612,53 @@ function App() {
             onToggle={() => toggleSection("skills")}
           >
             {data.skills.map((skill, si) => (
-              <div key={si} className="flex gap-2 items-center mb-3">
-                <input
-                  className={`w-[140px] shrink-0 ${inputClasses}`}
-                  placeholder="Category"
-                  value={skill.label}
-                  onChange={(e) =>
-                    update((d) => {
-                      d.skills[si].label = e.target.value;
-                    })
-                  }
-                />
-                <input
-                  className={`flex-1 ${inputClasses}`}
-                  placeholder="Comma-separated values"
-                  value={skill.items}
-                  onChange={(e) =>
-                    update((d) => {
-                      d.skills[si].items = e.target.value;
-                    })
-                  }
-                />
-                <button
-                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors duration-150 cursor-pointer shrink-0"
-                  onClick={() =>
-                    update((d) => {
-                      d.skills.splice(si, 1);
-                    })
-                  }
-                  title="Remove skill"
-                >
-                  <TrashIcon />
-                </button>
+              <div key={si} className="flex flex-col sm:flex-row gap-2 sm:items-center mb-3">
+                <div className="flex gap-2 items-center">
+                  <input
+                    className={`flex-1 sm:w-[140px] sm:flex-initial sm:shrink-0 ${inputClasses}`}
+                    placeholder="Category"
+                    value={skill.label}
+                    onChange={(e) =>
+                      update((d) => {
+                        d.skills[si].label = e.target.value;
+                      })
+                    }
+                  />
+                  <button
+                    className="sm:hidden p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors duration-150 cursor-pointer shrink-0"
+                    onClick={() =>
+                      update((d) => {
+                        d.skills.splice(si, 1);
+                      })
+                    }
+                    title="Remove skill"
+                  >
+                    <TrashIcon />
+                  </button>
+                </div>
+                <div className="flex gap-2 items-center flex-1">
+                  <input
+                    className={`flex-1 ${inputClasses}`}
+                    placeholder="Comma-separated values"
+                    value={skill.items}
+                    onChange={(e) =>
+                      update((d) => {
+                        d.skills[si].items = e.target.value;
+                      })
+                    }
+                  />
+                  <button
+                    className="hidden sm:block p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors duration-150 cursor-pointer shrink-0"
+                    onClick={() =>
+                      update((d) => {
+                        d.skills.splice(si, 1);
+                      })
+                    }
+                    title="Remove skill"
+                  >
+                    <TrashIcon />
+                  </button>
+                </div>
               </div>
             ))}
             <button
@@ -668,7 +712,7 @@ function App() {
                     key={ri}
                     className="border-l-2 border-[#1b2a4a]/20 pl-4 ml-1 my-3"
                   >
-                    <div className="flex gap-3 mb-2">
+                    <div className="flex flex-col sm:flex-row gap-3 mb-2">
                       <label className="flex-1 flex flex-col gap-1">
                         <span className={labelClasses}>Title</span>
                         <input
@@ -855,7 +899,7 @@ function App() {
           >
             {data.education.map((edu, ei) => (
               <div key={ei} className={cardClasses}>
-                <div className="flex items-end gap-3 mb-2">
+                <div className="flex flex-col sm:flex-row sm:items-end gap-3 mb-2">
                   <label className="flex-1 flex flex-col gap-1">
                     <span className={labelClasses}>Institution</span>
                     <input
@@ -868,29 +912,31 @@ function App() {
                       }
                     />
                   </label>
-                  <label className="flex-1 flex flex-col gap-1">
-                    <span className={labelClasses}>Period</span>
-                    <input
-                      className={inputClasses}
-                      value={edu.period}
-                      onChange={(e) =>
+                  <div className="flex items-end gap-3">
+                    <label className="flex-1 flex flex-col gap-1">
+                      <span className={labelClasses}>Period</span>
+                      <input
+                        className={inputClasses}
+                        value={edu.period}
+                        onChange={(e) =>
+                          update((d) => {
+                            d.education[ei].period = e.target.value;
+                          })
+                        }
+                      />
+                    </label>
+                    <button
+                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors duration-150 cursor-pointer mb-0.5"
+                      onClick={() =>
                         update((d) => {
-                          d.education[ei].period = e.target.value;
+                          d.education.splice(ei, 1);
                         })
                       }
-                    />
-                  </label>
-                  <button
-                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors duration-150 cursor-pointer mb-0.5"
-                    onClick={() =>
-                      update((d) => {
-                        d.education.splice(ei, 1);
-                      })
-                    }
-                    title="Remove education"
-                  >
-                    <TrashIcon />
-                  </button>
+                      title="Remove education"
+                    >
+                      <TrashIcon />
+                    </button>
+                  </div>
                 </div>
                 <label className="flex flex-col gap-1 mb-2">
                   <span className={labelClasses}>Degree</span>
@@ -1004,7 +1050,7 @@ function App() {
         </div>
 
         {/* Preview Panel */}
-        <div className="flex-1 bg-gray-100 flex items-center justify-center min-h-0">
+        <div className={`flex-1 bg-gray-100 items-center justify-center min-h-0 ${mobileView === "preview" ? "flex" : "hidden lg:flex"}`}>
           {loading ? (
             <div className="flex flex-col items-center gap-4">
               <svg
@@ -1048,6 +1094,44 @@ function App() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Mobile Bottom Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#1b2a4a] border-t border-white/10 px-3 py-2.5 flex items-center gap-2 z-20">
+        <button
+          onClick={exportJson}
+          className="flex items-center justify-center p-2 text-white/70 border border-white/20 rounded-md hover:bg-white/10 transition-colors duration-150 cursor-pointer"
+          title="Export JSON"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+        </button>
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="flex items-center justify-center p-2 text-white/70 border border-white/20 rounded-md hover:bg-white/10 transition-colors duration-150 cursor-pointer"
+          title="Import JSON"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+        </button>
+        <button
+          onClick={generate}
+          disabled={loading}
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm text-white border border-white/30 rounded-md hover:bg-white/10 transition-colors duration-150 cursor-pointer disabled:opacity-60"
+        >
+          {loading ? <SpinnerIcon /> : <DownloadIcon />}
+          {loading ? "Generating..." : "Generate PDF"}
+        </button>
+        <button
+          onClick={download}
+          disabled={loading}
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm bg-white text-[#1b2a4a] font-medium rounded-md hover:bg-gray-100 transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          <SaveIcon />
+          Download
+        </button>
       </div>
 
       {/* Toast Notification */}
