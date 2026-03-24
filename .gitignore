@@ -20,3 +20,9 @@ web/dist/
 # Misc
 *.png
 *.local
+
+# ignore lambda folder
+lambda/
+
+# Brainstorming sessions
+.superpowers/
