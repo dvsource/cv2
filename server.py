@@ -40,8 +40,10 @@ def _parse_period_side(text: str, is_end: bool) -> dict | str:
     raise ValueError(f"Cannot parse period side: {text!r}")
 
 
-def _migrate_period(value) -> dict:
-    """Convert a legacy period string to a structured dict. No-op if already structured."""
+def _migrate_period(value):
+    """Convert a legacy period string to a structured dict.
+    Returns a structured dict on success, or the original value unchanged on failure.
+    No-op if already a properly structured dict."""
     if isinstance(value, dict) and "start" in value and "end" in value:
         return value
     try:
@@ -54,8 +56,10 @@ def _migrate_period(value) -> dict:
             end = _parse_period_side(parts[0], is_end=True)
         return {"start": start, "end": end}
     except (ValueError, AttributeError):
-        # Return a safe default rather than crashing the endpoint
-        return {"start": {"year": 0, "month": 1}, "end": "present"}
+        # Leave unparseable value as-is rather than corrupting with a bad default
+        import logging
+        logging.getLogger(__name__).warning("Could not parse period value: %r", value)
+        return value
 
 
 def migrate_periods(data: dict) -> bool:
@@ -68,12 +72,16 @@ def migrate_periods(data: dict) -> bool:
     for exp in data.get("experience", []):
         for role in exp.get("roles", []):
             if isinstance(role.get("period"), str):
-                role["period"] = _migrate_period(role["period"])
-                changed = True
+                migrated = _migrate_period(role["period"])
+                if isinstance(migrated, dict):
+                    role["period"] = migrated
+                    changed = True
     for edu in data.get("education", []):
         if isinstance(edu.get("period"), str):
-            edu["period"] = _migrate_period(edu["period"])
-            changed = True
+            migrated = _migrate_period(edu["period"])
+            if isinstance(migrated, dict):
+                edu["period"] = migrated
+                changed = True
     return changed
 
 
