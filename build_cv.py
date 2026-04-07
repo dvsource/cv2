@@ -76,6 +76,32 @@ def esc(text: str) -> str:
     return _xml_escape(str(text))
 
 
+MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+
+
+def format_period(period) -> str:
+    """Format a period dict as 'Mar 2022 – Dec 2023' or 'Mar 2022 – Present'.
+    Falls back to str(period) for legacy string values."""
+    if isinstance(period, str):
+        return period
+    if not isinstance(period, dict):
+        return ""
+    start = period.get("start", {})
+    end = period.get("end", {})
+    sm = start.get("month", 1)
+    sy = start.get("year", "")
+    start_str = f"{MONTH_ABBR[sm - 1]} {sy}" if sy else ""
+    if end == "present":
+        end_str = "Present"
+    elif isinstance(end, dict):
+        em = end.get("month", 12)
+        ey = end.get("year", "")
+        end_str = f"{MONTH_ABBR[em - 1]} {ey}" if ey else ""
+    else:
+        end_str = ""
+    return f"{start_str} \u2013 {end_str}" if end_str else start_str
+
+
 class SpacedText(Flowable):
     """Draw uppercase text with true letter-spacing via canvas charSpace."""
 
@@ -284,7 +310,7 @@ def build_experience(experience: list, styles: dict, content_width: float) -> li
         company = esc(exp["company"])
         for role in exp.get("roles", []):
             title = esc(role["title"])
-            period = esc(role.get("period", ""))
+            period = esc(format_period(role.get("period", {})))
 
             title_p = Paragraph(f"<b>{company} \u2014 {title}</b>", styles["exp_title"])
             date_p = Paragraph(period, styles["exp_date"])
@@ -353,7 +379,7 @@ def build_education(education: list, styles: dict, content_width: float) -> list
     for edu in education:
         degree = esc(edu.get("degree", ""))
         institution = esc(edu["institution"])
-        period = esc(edu.get("period", ""))
+        period = esc(format_period(edu.get("period", {})))
         focus = edu.get("focus", [])
 
         if degree:
