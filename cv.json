@@ -4,7 +4,8 @@
     "github": "github.com/dvsource",
     "linkedin": "linkedin/in/dvsource",
     "name": "Viraj Kaushalye",
-    "phone": "+94 711 25 20 321",
+    "phone": "+94 711 25 20 32",
+    "title": "Full Stack Engineer",
     "website": "v4k8.dev"
   },
   "education": [
@@ -33,7 +34,7 @@
       "company": "Matific - Sri Lanka",
       "roles": [
         {
-          "description": "Built data-intensive activity pages, advanced filtering systems, reporting modules, and core admin tools using Angular and Django, optimizing performance for large datasets. (Matific - Teacher Site)\nDeveloped serverless microservices with AWS Lambda and a Rust PoC for high-performance computation, reducing operational costs.\nIncreased unit test coverage to 90%+, enhancing reliability and regression safety.\nWorked with global cross-functional teams (Mobile, Unity, Content, ML/AI, Support) to resolve production issues and improve integrations.\nContributed to company-wide UI component migration, improving consistency and maintainability.\nDelivered an Accessibility-compliant product version under tight deadlines for European and North American markets.\nBuilt a RAG-based AI agent using LangChain to assist backend support teams in troubleshooting customer issues without requiring developer intervention.",
+          "description": "Built data-intensive activity pages, advanced filtering systems, reporting modules, and core admin tools using Angular and Django, optimizing performance for large datasets. (Matific - Teacher Site)\nDeveloped serverless microservices with AWS Lambda and a Rust PoC for high-performance computation, reducing operational costs.\nIncreased unit test coverage to 90%+, enhancing reliability and regression safety.\nWorked with global cross-functional teams (Mobile, Unity, Content, ML/AI, Support) to resolve production issues and improve integrations.\nContributed to company-wide UI component migration, improving consistency and maintainability.\nDelivered an Accessibility-compliant product version under tight deadlines for European and North American markets.\nBuilt a RAG-based AI agent using LangChain to assist backend support teams in troubleshooting customer issues without requiring developer intervention.\nMigrated the frontend client application (internal) from Angular to React to improve performance and maintainability.",
           "period": "2022 - 2026",
           "title": "Senior Software Engineer"
         }
@@ -69,21 +70,21 @@
       "name": "RAG-based Knowledge-based Assistant"
     },
     {
-      "description": "A project I built for my wife. It is a collection of tools designed to support her day-to-day work at school and private classes.\n\nThe system includes AI-powered features to assist with her teaching career, such as generating new Physics problem ideas, simplifying complex concepts, and helping create structured lesson plans and schedules.",
+      "description": "A project I built for my wife. It is a collection of tools designed to support her day-to-day work at school and private classes.\n\nThe system includes AI-powered features to assist with her teaching career, such as generating new Physics problem ideas, simplifying complex concepts, and helping create structured lesson plans.",
       "name": "A/L Physics Teacher Assistant + Class Scheduler"
     },
     {
-      "description": "My personal website and portfolio combined with a comprehensive life management toolkit.\n\nIt includes tools for task management, time management, habit tracking, finance and expense tracking, and TBR tracking. The system also features a CLI tool that allows me to insert and retrieve data directly from the terminal without interrupting my workflow.",
-      "name": "Personal Life Management System"
+      "description": "Designed and developed a full-stack admin portal to manage companies, clients, projects, and contracts with documents upload and manage.\nArchitected the system end-to-end and delivered it to production within 4 months as a part-time freelance project.\nBuilt with NestJS, Angular, AWS S3, NX monorepo, Typescript",
+      "name": "Planflex - Admin Portal for a Construction Consultancy Company"
     },
     {
-      "description": "Final-year university project — an augmented reality application built with Unity and iOS ARKit.\n\nThe application was designed to help visitors navigate large buildings by providing real-time, AR-based indoor guidance and directional assistance.",
+      "description": "Final-year university project; an augmented reality application\nThe application was designed to help visitors navigate large buildings by providing real-time, AR-based\nindoor guidance and directional assistance.\nBuilt with Unity and iOS ARKit.",
       "name": "AR-based Indoor Navigation Guide"
     }
   ],
   "skills": [
     {
-      "items": "Java, JavaScript/TypeScript, C#, Python, PHP, Go, Rust",
+      "items": "Java, JavaScript/TypeScript, Python, C#",
       "label": "Languages"
     },
     {
@@ -91,11 +92,11 @@
       "label": "Frontend"
     },
     {
-      "items": "Spring Boot, Node.js, Django, Flask",
+      "items": "Spring Boot, Node.js, NestJS, Django, Flask",
       "label": "Backend"
     },
     {
-      "items": "Next js",
+      "items": "Next js, PHP",
       "label": "Fullstack"
     },
     {
@@ -111,5 +112,7 @@
       "label": "Other"
     }
   ],
-  "summary": "Software developer focused on building clean, maintainable, and scalable systems across the full stack. Strong interest in distributed systems, system architecture, and designing reliable software across frontend and backend systems. Passionate about exploring open-source projects to understand engineering patterns and architectural trade-offs.\nCommitted to efficiency, reliability, and automation, with a strong focus on improving developer productivity and long-term maintainability. Hands-on experience with modern AI technologies, including agent-based systems and MCP/RAG implementations, applying them to rapidly evolving development workflows."
+  "summary": "Software developer focused on building clean, maintainable, and scalable systems across the full stack. Strong interest in distributed systems, system architecture, and designing reliable software across frontend and backend systems. Passionate about exploring open-source projects to understand engineering patterns and architectural trade-offs.\nCommitted to efficiency, reliability, and automation, with a strong focus on improving developer productivity and long-term maintainability. Hands-on experience with modern AI technologies, including agent-based systems and MCP/RAG implementations, applying them to rapidly evolving development workflows.",
+  "achievements": [],
+  "sectionOrder": ["skills", "achievements", "experience", "projects", "education", "interests"]
 }
