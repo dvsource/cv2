@@ -305,7 +305,7 @@ def build_contact(contact: dict, styles: dict, content_width: float = 0) -> list
     return items
 
 
-def build_skills(skills: list, styles: dict) -> list:
+def build_skills(skills: list, styles: dict, content_width: float = 0) -> list:
     """Build the skills section."""
     items = section_header("Skills", styles)
 
@@ -317,6 +317,18 @@ def build_skills(skills: list, styles: dict) -> list:
         if label and vals:
             items.append(Paragraph(f"<b>{label}:</b> {esc(vals)}", styles["body"]))
 
+    return items
+
+
+def build_achievements(achievements: list, styles: dict, content_width: float = 0) -> list:
+    """Build the achievements section — plain bullet list, no dates or labels."""
+    if not achievements:
+        return []
+    items = section_header("Achievements", styles)
+    for achievement in achievements:
+        text = achievement.strip() if isinstance(achievement, str) else str(achievement)
+        if text:
+            items.append(Paragraph(f"\xb7{NBSP * 2}{esc(text)}", styles["bullet"]))
     return items
 
 
@@ -371,7 +383,7 @@ def build_experience(experience: list, styles: dict, content_width: float) -> li
     return items
 
 
-def build_projects(projects: list, styles: dict) -> list:
+def build_projects(projects: list, styles: dict, content_width: float = 0) -> list:
     """Build the projects section."""
     items = section_header("Projects", styles)
 
@@ -438,7 +450,7 @@ def build_education(education: list, styles: dict, content_width: float) -> list
     return items
 
 
-def build_interests(interests: list, styles: dict) -> list:
+def build_interests(interests: list, styles: dict, content_width: float = 0) -> list:
     """Build the interests section."""
     items = section_header("Interests", styles)
 
@@ -474,22 +486,26 @@ def build_pdf(data: dict, output_path: str):
     summary = esc(data.get("summary", "")).replace("\n", "<br/>")
     story.append(Paragraph(summary, styles["summary"]))
 
-    # Skills
-    story.extend(build_skills(data.get("skills", []), styles))
+    SECTION_BUILDERS = {
+        "skills":       lambda d, s, w: build_skills(d.get("skills", []), s, w),
+        "achievements": lambda d, s, w: build_achievements(d.get("achievements", []), s, w),
+        "experience":   lambda d, s, w: build_experience(d.get("experience", []), s, w),
+        "projects":     lambda d, s, w: build_projects(d.get("projects", []), s, w),
+        "education":    lambda d, s, w: build_education(d.get("education", []), s, w),
+        "interests":    lambda d, s, w: build_interests(d.get("interests", []), s, w) if d.get("interests") else [],
+    }
+    DEFAULT_SECTION_ORDER = ["skills", "achievements", "experience", "projects", "education", "interests"]
 
-    # Experience
-    story.extend(build_experience(data.get("experience", []), styles, content_width))
+    section_order = list(data.get("sectionOrder") or DEFAULT_SECTION_ORDER)
+    # Append any canonical keys missing from stored order
+    for key in DEFAULT_SECTION_ORDER:
+        if key not in section_order:
+            section_order.append(key)
 
-    # Projects
-    story.extend(build_projects(data.get("projects", []), styles))
-
-    # Education
-    story.extend(build_education(data.get("education", []), styles, content_width))
-
-    # Interests
-    interests = data.get("interests", [])
-    if interests:
-        story.extend(build_interests(interests, styles))
+    for key in section_order:
+        builder = SECTION_BUILDERS.get(key)
+        if builder:
+            story.extend(builder(data, styles, content_width))
 
     doc = BaseDocTemplate(
         output_path,
