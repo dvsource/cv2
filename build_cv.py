@@ -88,13 +88,13 @@ def format_period(period) -> str:
         return ""
     start = period.get("start", {})
     end = period.get("end", {})
-    sm = start.get("month", 1)
+    sm = max(1, min(int(start.get("month", 1)), 12))
     sy = start.get("year", "")
     start_str = f"{MONTH_ABBR[sm - 1]} {sy}" if sy else ""
     if end == "present":
         end_str = "Present"
     elif isinstance(end, dict):
-        em = end.get("month", 12)
+        em = max(1, min(int(end.get("month", 12)), 12))
         ey = end.get("year", "")
         end_str = f"{MONTH_ABBR[em - 1]} {ey}" if ey else ""
     else:
@@ -282,7 +282,7 @@ def build_contact(contact: dict, styles: dict, content_width: float = 0) -> list
     sep = f"{NBSP * 2}\xb7{NBSP * 2}"
 
     def linked(text: str, href: str) -> str:
-        return f'<link href="{href}">{esc(text)}</link>'
+        return f'<link href="{_xml_escape(href)}">{esc(text)}</link>'
 
     row1 = []
     if contact.get("email"):
