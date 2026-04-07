@@ -159,6 +159,14 @@ def make_styles() -> dict:
         textColor=COLOR_DARK,
     )
 
+    s["title"] = ParagraphStyle(
+        "title",
+        fontName="NotoSans",
+        fontSize=11,
+        leading=15,
+        textColor=COLOR_DARK,
+    )
+
     s["contact"] = ParagraphStyle(
         "contact",
         fontName="NotoSans",
@@ -261,26 +269,36 @@ def make_styles() -> dict:
 # ── Section Builders ───────────────────────────────────────────
 
 
-def build_contact(contact: dict, styles: dict) -> list:
-    """Contact info rows with Unicode icon prefixes and middle-dot separators."""
+def _normalise_url(url: str) -> str:
+    """Prepend https:// if no scheme is present."""
+    if url and not url.startswith(("http://", "https://")):
+        return "https://" + url
+    return url
+
+
+def build_contact(contact: dict, styles: dict, content_width: float = 0) -> list:
+    """Contact info rows with hyperlinks for email, website, linkedin, github."""
     items = []
     sep = f"{NBSP * 2}\xb7{NBSP * 2}"
 
+    def linked(text: str, href: str) -> str:
+        return f'<link href="{href}">{esc(text)}</link>'
+
     row1 = []
     if contact.get("email"):
-        row1.append(esc(contact["email"]))
+        row1.append(linked(contact["email"], f'mailto:{contact["email"]}'))
     if contact.get("phone"):
         row1.append(esc(contact["phone"]))
     if contact.get("website"):
-        row1.append(esc(contact["website"]))
+        row1.append(linked(contact["website"], _normalise_url(contact["website"])))
     if row1:
         items.append(Paragraph(sep.join(row1), styles["contact"]))
 
     row2 = []
     if contact.get("linkedin"):
-        row2.append(esc(contact["linkedin"]))
+        row2.append(linked(contact["linkedin"], _normalise_url(contact["linkedin"])))
     if contact.get("github"):
-        row2.append(esc(contact["github"]))
+        row2.append(linked(contact["github"], _normalise_url(contact["github"])))
     if row2:
         items.append(Paragraph(sep.join(row2), styles["contact"]))
 
@@ -443,6 +461,9 @@ def build_pdf(data: dict, output_path: str):
 
     # Name
     story.append(Paragraph(esc(data["contact"]["name"]), styles["name"]))
+    title = data["contact"].get("title", "").strip()
+    if title:
+        story.append(Paragraph(esc(title), styles["title"]))
     story.append(Spacer(1, 2 * mm))
 
     # Contact info
