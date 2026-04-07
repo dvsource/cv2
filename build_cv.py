@@ -190,6 +190,8 @@ def make_styles() -> dict:
         fontSize=9.5,
         leading=13.5,
         textColor=COLOR_MUTED,
+        leftIndent=12,
+        firstLineIndent=-8,
     )
 
     s["proj_name"] = ParagraphStyle(
@@ -206,6 +208,8 @@ def make_styles() -> dict:
         fontSize=9.5,
         leading=13,
         textColor=COLOR_MUTED,
+        leftIndent=12,
+        firstLineIndent=-8,
     )
 
     s["edu_main"] = ParagraphStyle(
@@ -397,9 +401,7 @@ def build_interests(interests: list, styles: dict) -> list:
     for interest in interests:
         text = interest.strip() if isinstance(interest, str) else str(interest)
         if text:
-            items.append(
-                Paragraph(f"\xb7{NBSP * 2}{esc(text)}", styles["bullet"])
-            )
+            items.append(Paragraph(f"\xb7{NBSP * 2}{esc(text)}", styles["bullet"]))
 
     return items
 
@@ -421,7 +423,7 @@ def build_pdf(data: dict, output_path: str):
     story.extend(build_contact(data["contact"], styles))
 
     # Professional Summary
-    story.extend(section_header("Professional Summary", styles))
+    story.extend(section_header("Summary", styles))
     summary = esc(data.get("summary", "")).replace("\n", "<br/>")
     story.append(Paragraph(summary, styles["summary"]))
 
