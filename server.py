@@ -35,21 +35,27 @@ def _parse_period_side(text: str, is_end: bool) -> dict | str:
         return {"year": int(m.group(1)), "month": 12 if is_end else 1}
     # fallback: grab first 4-digit number
     m = re.search(r"\d{4}", text)
-    return {"year": int(m.group()), "month": 12 if is_end else 1}
+    if m:
+        return {"year": int(m.group()), "month": 12 if is_end else 1}
+    raise ValueError(f"Cannot parse period side: {text!r}")
 
 
 def _migrate_period(value) -> dict:
     """Convert a legacy period string to a structured dict. No-op if already structured."""
-    if isinstance(value, dict):
+    if isinstance(value, dict) and "start" in value and "end" in value:
         return value
-    parts = re.split(r"\s*[-–]\s*", str(value).strip(), maxsplit=1)
-    start = _parse_period_side(parts[0], is_end=False)
-    if len(parts) > 1:
-        end = _parse_period_side(parts[1], is_end=True)
-    else:
-        # Single-year like "2019" — treat end same year, month 12
-        end = _parse_period_side(parts[0], is_end=True)
-    return {"start": start, "end": end}
+    try:
+        parts = re.split(r"\s*[-–]\s*", str(value).strip(), maxsplit=1)
+        start = _parse_period_side(parts[0], is_end=False)
+        if len(parts) > 1:
+            end = _parse_period_side(parts[1], is_end=True)
+        else:
+            # Single-year like "2019" — treat end same year, month 12
+            end = _parse_period_side(parts[0], is_end=True)
+        return {"start": start, "end": end}
+    except (ValueError, AttributeError):
+        # Return a safe default rather than crashing the endpoint
+        return {"start": {"year": 0, "month": 1}, "end": "present"}
 
 
 def migrate_periods(data: dict) -> bool:
