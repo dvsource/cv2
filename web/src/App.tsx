@@ -235,6 +235,7 @@ function Section({
   draggable,
   onDragStart,
   onDragOver,
+  onDragEnd,
   onDrop,
 }: {
   title: string;
@@ -245,6 +246,7 @@ function Section({
   draggable?: boolean;
   onDragStart?: () => void;
   onDragOver?: (e: React.DragEvent) => void;
+  onDragEnd?: () => void;
   onDrop?: () => void;
 }) {
   return (
@@ -253,6 +255,7 @@ function Section({
       draggable={draggable}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
+      onDragEnd={onDragEnd}
       onDrop={onDrop}
     >
       <button
@@ -768,6 +771,7 @@ function App() {
               draggable: true as const,
               onDragStart: () => { dragSrcRef.current = key; },
               onDragOver: (e: React.DragEvent) => e.preventDefault(),
+              onDragEnd: () => { dragSrcRef.current = null; },
               onDrop: () => {
                 const src = dragSrcRef.current;
                 if (!src || src === key) return;
