@@ -1,4 +1,5 @@
 import json
+import re
 import tempfile
 from pathlib import Path
 
@@ -14,6 +15,61 @@ app = Flask(__name__, static_folder=str(DIST_DIR), static_url_path="")
 CORS(app)
 
 CV_PATH = Path(__file__).parent / "cv.json"
+
+MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+_MONTH_MAP = {m.lower(): i + 1 for i, m in enumerate(MONTH_ABBR)}
+
+def _parse_period_side(text: str, is_end: bool) -> dict | str:
+    """Parse one side of a period string into {year, month} or 'present'."""
+    text = text.strip()
+    if text.lower() == "present":
+        return "present"
+    # "Mar 2022" or "March 2022"
+    m = re.match(r"([A-Za-z]+)\s+(\d{4})", text)
+    if m:
+        month = _MONTH_MAP.get(m.group(1)[:3].lower(), 12 if is_end else 1)
+        return {"year": int(m.group(2)), "month": month}
+    # bare year "2019"
+    m = re.match(r"^(\d{4})$", text)
+    if m:
+        return {"year": int(m.group(1)), "month": 12 if is_end else 1}
+    # fallback: grab first 4-digit number
+    m = re.search(r"\d{4}", text)
+    return {"year": int(m.group()), "month": 12 if is_end else 1}
+
+
+def _migrate_period(value) -> dict:
+    """Convert a legacy period string to a structured dict. No-op if already structured."""
+    if isinstance(value, dict):
+        return value
+    parts = re.split(r"\s*[-–]\s*", str(value).strip(), maxsplit=1)
+    start = _parse_period_side(parts[0], is_end=False)
+    if len(parts) > 1:
+        end = _parse_period_side(parts[1], is_end=True)
+    else:
+        # Single-year like "2019" — treat end same year, month 12
+        end = _parse_period_side(parts[0], is_end=True)
+    return {"start": start, "end": end}
+
+
+def migrate_periods(data: dict) -> bool:
+    """
+    Walk experience[].roles[].period and education[].period.
+    Convert any legacy string periods to structured dicts in-place.
+    Returns True if any migration was performed, False if data was already clean.
+    """
+    changed = False
+    for exp in data.get("experience", []):
+        for role in exp.get("roles", []):
+            if isinstance(role.get("period"), str):
+                role["period"] = _migrate_period(role["period"])
+                changed = True
+    for edu in data.get("education", []):
+        if isinstance(edu.get("period"), str):
+            edu["period"] = _migrate_period(edu["period"])
+            changed = True
+    return changed
+
 
 init_db()
 seed_from_json(CV_PATH)
@@ -32,7 +88,12 @@ def get_cv():
             "experience": [],
             "projects": [],
             "education": [],
+            "interests": [],
         }
+    if migrate_periods(data):
+        # Persist migrated data so this never runs again
+        CV_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+        save_version(data, "migration")
     return jsonify(data)
 
 
