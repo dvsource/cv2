@@ -301,17 +301,24 @@ function JobDetailView({
   const handleStatusChange = useCallback(async (newStatus: JobStatus) => {
     setStatus(newStatus);
     setSaving(true);
-    const res = await fetch(`/api/jobs/${job.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
-    });
-    if (res.ok) {
-      const { job: updated } = await res.json();
-      onJobUpdated(updated);
+    try {
+      const res = await fetch(`/api/jobs/${job.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        const { job: updated } = await res.json();
+        onJobUpdated(updated);
+      } else {
+        setStatus(job.status); // rollback to prop value on failure
+      }
+    } catch {
+      setStatus(job.status); // rollback to prop value on network error
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-  }, [job.id, onJobUpdated]);
+  }, [job.id, job.status, onJobUpdated]);
 
   return (
     <div className="p-4 space-y-4">
@@ -421,7 +428,8 @@ export function JobPanel({
 
   const handleDelete = useCallback(async (jobId: number) => {
     if (!confirm("Delete this job and all its CV versions?")) return;
-    await fetch(`/api/jobs/${jobId}`, { method: "DELETE" });
+    const res = await fetch(`/api/jobs/${jobId}`, { method: "DELETE" });
+    if (!res.ok) return; // server rejected - don't update local state
     if (activeJobId === jobId) onSelectJob(null);
     onJobsChanged();
     setView("list");
