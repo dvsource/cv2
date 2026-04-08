@@ -518,6 +518,24 @@ function App() {
     showToast("JSON exported", "success");
   };
 
+  const saveData = useCallback(async () => {
+    if (!data) return;
+    try {
+      const url = activeJobId != null ? `/api/jobs/${activeJobId}/cv` : "/api/cv";
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      setUnsaved(false);
+      showToast("CV saved", "success");
+      fetchVersions();
+    } catch {
+      showToast("Failed to save CV", "error");
+    }
+  }, [data, activeJobId, showToast, fetchVersions]);
+
   const importJson = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -596,13 +614,13 @@ function App() {
           {unsaved && (
             <span className="flex items-center gap-1.5 text-xs text-amber-300">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-300" />
-              Saved
+              Unsaved changes
             </span>
           )}
           {!unsaved && data && (
             <span className="flex items-center gap-1.5 text-xs text-emerald-300">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-300" />
-              Unsaved changes
+              Saved
             </span>
           )}
         </div>
@@ -662,6 +680,15 @@ function App() {
             className="hidden"
             onChange={importJson}
           />
+          <button
+            onClick={saveData}
+            disabled={!unsaved}
+            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 text-sm border border-white/30 rounded-md hover:bg-white/10 transition-colors duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            title="Save CV"
+          >
+            <SaveIcon />
+            Save
+          </button>
           <button
             onClick={generate}
             disabled={loading}
@@ -1310,6 +1337,14 @@ function App() {
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
           </svg>
+        </button>
+        <button
+          onClick={saveData}
+          disabled={!unsaved}
+          className="flex items-center justify-center p-2 text-white/70 border border-white/20 rounded-md hover:bg-white/10 transition-colors duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          title="Save CV"
+        >
+          <SaveIcon />
         </button>
         <button
           onClick={generate}
