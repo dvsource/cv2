@@ -345,7 +345,7 @@ def build_experience(experience: list, styles: dict, content_width: float) -> li
             title_p = Paragraph(f"<b>{company} \u2014 {title}</b>", styles["exp_title"])
             date_p = Paragraph(period, styles["exp_date"])
 
-            date_w = 22 * mm
+            date_w = 40 * mm
             t = Table(
                 [[title_p, date_p]],
                 colWidths=[content_width - date_w, date_w],
