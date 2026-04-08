@@ -420,7 +420,7 @@ def build_education(education: list, styles: dict, content_width: float) -> list
         main_p = Paragraph(main_text, styles["edu_main"])
         date_p = Paragraph(period, styles["edu_date"])
 
-        date_w = 22 * mm
+        date_w = 40 * mm
         t = Table(
             [[main_p, date_p]],
             colWidths=[content_width - date_w, date_w],
