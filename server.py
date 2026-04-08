@@ -242,6 +242,60 @@ def jobs_delete(jid):
     return jsonify({"ok": True})
 
 
+@app.get("/api/jobs/<int:jid>/cv")
+def job_cv_get(jid):
+    if get_job(jid) is None:
+        return jsonify({"error": "not found"}), 404
+    data = get_latest_job_cv(jid)
+    if data is None:
+        # Seed from General CV (copy current latest)
+        data = get_latest()
+        if data is None and CV_PATH.exists():
+            data = json.loads(CV_PATH.read_text())
+        if data is None:
+            data = {
+                "contact": {"name": "", "email": "", "phone": "", "website": "", "linkedin": "", "github": ""},
+                "summary": "", "skills": [], "experience": [], "projects": [],
+                "education": [], "interests": [],
+            }
+    return jsonify(data)
+
+
+@app.put("/api/jobs/<int:jid>/cv")
+def job_cv_save(jid):
+    if get_job(jid) is None:
+        return jsonify({"error": "not found"}), 404
+    data = request.get_json()
+    version_id = save_job_cv_version(jid, data, "manual")
+    return jsonify({"ok": True, "version_id": version_id})
+
+
+@app.post("/api/jobs/<int:jid>/generate")
+def job_cv_generate(jid):
+    if get_job(jid) is None:
+        return jsonify({"error": "not found"}), 404
+    data = request.get_json()
+    save_job_cv_version(jid, data, "generate")
+    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+        build_pdf(data, tmp.name)
+        return send_file(tmp.name, mimetype="application/pdf")
+
+
+@app.get("/api/jobs/<int:jid>/versions")
+def job_cv_versions_list(jid):
+    if get_job(jid) is None:
+        return jsonify({"error": "not found"}), 404
+    return jsonify(list_job_cv_versions(jid))
+
+
+@app.get("/api/jobs/<int:jid>/versions/<int:vid>")
+def job_cv_versions_get(jid, vid):
+    v = get_job_cv_version(vid)
+    if v is None or v["job_id"] != jid:
+        return jsonify({"error": "not found"}), 404
+    return jsonify(v)
+
+
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_spa(path):
