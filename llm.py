@@ -1,17 +1,26 @@
 """GLM 5.1 LLM integration via OpenAI-compatible API."""
 
 import json
+import logging
 import os
 
 from openai import OpenAI
 
+logger = logging.getLogger(__name__)
+
 _client = None
+
+
+class LLMError(Exception):
+    """Raised when the LLM API call fails."""
 
 
 def _get_client() -> OpenAI:
     global _client
     if _client is None:
         api_key = os.environ.get("GLM_API_KEY", "")
+        if not api_key:
+            raise ValueError("GLM_API_KEY environment variable is not set")
         _client = OpenAI(
             api_key=api_key,
             base_url="https://api.z.ai/api/coding/paas/v4",
@@ -43,6 +52,17 @@ Rules:
 """
 
 
+def _strip_fences(raw: str) -> str:
+    """Strip markdown code fences if present (handles any language tag, any case)."""
+    if not raw.startswith("```"):
+        return raw
+    lines = raw.splitlines()
+    inner = lines[1:]  # drop opening fence line
+    if inner and inner[-1].strip() == "```":
+        inner = inner[:-1]  # drop closing fence line
+    return "\n".join(inner).strip()
+
+
 def extract_job_info(text: str, fill_company_role: bool = True) -> dict:
     """
     Call GLM 5.1 to extract structured job info from raw text.
@@ -53,6 +73,9 @@ def extract_job_info(text: str, fill_company_role: bool = True) -> dict:
                            False when processing a manual-entry description (skip those fields)
 
     Returns dict with keys: company, role, description, tech_skills, other_skills, key_points
+
+    Raises:
+        LLMError: if the API call fails for any reason
     """
     mode_hint = (
         "Extract company name, role/title, and all other fields from this raw job page content."
@@ -60,28 +83,30 @@ def extract_job_info(text: str, fill_company_role: bool = True) -> dict:
         else "Extract only tech_skills, other_skills, and key_points from this job description. Leave company and role as empty strings."
     )
 
-    response = _get_client().chat.completions.create(
-        model="glm-5.1",
-        messages=[
-            {"role": "system", "content": _SYSTEM_PROMPT},
-            {"role": "user", "content": f"{mode_hint}\n\n---\n\n{text}"},
-        ],
-        temperature=0.1,
-        max_tokens=800,
-    )
+    try:
+        response = _get_client().chat.completions.create(
+            model="glm-5.1",
+            messages=[
+                {"role": "system", "content": _SYSTEM_PROMPT},
+                {"role": "user", "content": f"{mode_hint}\n\n---\n\n{text}"},
+            ],
+            temperature=0.1,
+            max_tokens=1200,
+            timeout=30,
+        )
+    except Exception as exc:
+        raise LLMError(str(exc)) from exc
+
+    if not response.choices:
+        raise LLMError("LLM returned empty choices")
 
     raw = response.choices[0].message.content.strip()
-
-    # Strip markdown fences if the model includes them despite instructions
-    if raw.startswith("```"):
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
-        raw = raw.strip()
+    raw = _strip_fences(raw)
 
     try:
         result = json.loads(raw)
     except json.JSONDecodeError:
+        logger.warning("LLM returned non-JSON output: %r", raw[:200])
         result = {}
 
     return {
