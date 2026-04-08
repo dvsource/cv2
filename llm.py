@@ -1,4 +1,4 @@
-"""GLM 5.1 LLM integration via OpenAI-compatible API."""
+"""OpenAI LLM integration for job info extraction."""
 
 import json
 import logging
@@ -18,13 +18,10 @@ class LLMError(Exception):
 def _get_client() -> OpenAI:
     global _client
     if _client is None:
-        api_key = os.environ.get("GLM_API_KEY", "")
+        api_key = os.environ.get("OPENAI_API_KEY", "")
         if not api_key:
-            raise ValueError("GLM_API_KEY environment variable is not set")
-        _client = OpenAI(
-            api_key=api_key,
-            base_url="https://api.z.ai/api/coding/paas/v4",
-        )
+            raise ValueError("OPENAI_API_KEY environment variable is not set")
+        _client = OpenAI(api_key=api_key)
     return _client
 
 
@@ -65,7 +62,7 @@ def _strip_fences(raw: str) -> str:
 
 def extract_job_info(text: str, fill_company_role: bool = True) -> dict:
     """
-    Call GLM 5.1 to extract structured job info from raw text.
+    Call OpenAI to extract structured job info from raw text.
 
     Args:
         text: raw pasted job page content OR structured description text
@@ -85,7 +82,7 @@ def extract_job_info(text: str, fill_company_role: bool = True) -> dict:
 
     try:
         response = _get_client().chat.completions.create(
-            model="glm-5.1",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": _SYSTEM_PROMPT},
                 {"role": "user", "content": f"{mode_hint}\n\n---\n\n{text}"},
