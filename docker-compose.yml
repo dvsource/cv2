@@ -6,6 +6,9 @@ services:
     volumes:
       - ./cv.json:/app/cv.json
       - cv-db:/app/db-data
+    env_file:
+      - path: .env
+        required: false
     environment:
       - CV_DB_PATH=/app/db-data/cv_history.db
 
