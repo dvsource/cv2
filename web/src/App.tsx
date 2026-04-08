@@ -411,6 +411,37 @@ function App() {
 
   const isOpen = (key: string) => !collapsed.has(key);
 
+  const switchToJob = useCallback(async (jobId: number | null) => {
+    setActiveJobId(jobId);
+    const url = jobId != null ? `/api/jobs/${jobId}/cv` : "/api/cv";
+    const res = await fetch(url);
+    if (res.ok) {
+      const raw = await res.json();
+      setData(normaliseCvData(raw));
+      setUnsaved(false);
+      setPdfUrl(null);
+    }
+    setPanelOpen(false);
+  }, []);
+
+  const saveData = useCallback(async () => {
+    if (!data) return;
+    try {
+      const url = activeJobId != null ? `/api/jobs/${activeJobId}/cv` : "/api/cv";
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      setUnsaved(false);
+      showToast("CV saved", "success");
+      fetchVersions();
+    } catch {
+      showToast("Failed to save CV", "error");
+    }
+  }, [data, activeJobId, showToast, fetchVersions]);
+
   if (!data)
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
@@ -496,19 +527,6 @@ function App() {
     }
   };
 
-  const switchToJob = useCallback(async (jobId: number | null) => {
-    setActiveJobId(jobId);
-    const url = jobId != null ? `/api/jobs/${jobId}/cv` : "/api/cv";
-    const res = await fetch(url);
-    if (res.ok) {
-      const raw = await res.json();
-      setData(normaliseCvData(raw));
-      setUnsaved(false);
-      setPdfUrl(null);
-    }
-    setPanelOpen(false);
-  }, []);
-
   const exportJson = () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -519,24 +537,6 @@ function App() {
     URL.revokeObjectURL(url);
     showToast("JSON exported", "success");
   };
-
-  const saveData = useCallback(async () => {
-    if (!data) return;
-    try {
-      const url = activeJobId != null ? `/api/jobs/${activeJobId}/cv` : "/api/cv";
-      const res = await fetch(url, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error("Save failed");
-      setUnsaved(false);
-      showToast("CV saved", "success");
-      fetchVersions();
-    } catch {
-      showToast("Failed to save CV", "error");
-    }
-  }, [data, activeJobId, showToast, fetchVersions]);
 
   const importJson = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
