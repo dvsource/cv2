@@ -503,6 +503,7 @@ function App() {
     if (res.ok) {
       const raw = await res.json();
       setData(normaliseCvData(raw));
+      setUnsaved(false);
       setPdfUrl(null);
     }
     setPanelOpen(false);
