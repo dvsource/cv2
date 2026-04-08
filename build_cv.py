@@ -61,10 +61,6 @@ COLOR_MUTED = HexColor("#4A4A4A")
 COLOR_LINE = HexColor("#CCCCCC")
 COLOR_CONTACT = HexColor("#555555")
 
-MARGIN_LR = 22 * mm
-MARGIN_TOP = 18 * mm
-MARGIN_BOTTOM = 18 * mm
-
 DEFAULT_PDF_OPTS: dict = {
     "marginLR": 22,
     "marginTop": 18,
