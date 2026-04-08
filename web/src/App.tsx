@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-// @ts-expect-error - PdfOptions imported for future use (Task 4: Wire OptionsPanel into App.tsx)
-import type { CvData, PdfOptions, VersionSummary, JobListItem, Period, PeriodDate } from "./types";
+import type { CvData, VersionSummary, JobListItem, Period, PeriodDate } from "./types";
 import { JobPanel } from "./JobPanel";
+import { OptionsPanel } from "./OptionsPanel";
 
 interface Toast {
   message: string;
@@ -149,23 +149,6 @@ function DocIcon() {
   );
 }
 
-function DragHandleIcon() {
-  return (
-    <svg
-      className="w-4 h-4 text-gray-400 cursor-grab active:cursor-grabbing"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-    >
-      <circle cx="9" cy="6" r="1.5" />
-      <circle cx="15" cy="6" r="1.5" />
-      <circle cx="9" cy="12" r="1.5" />
-      <circle cx="15" cy="12" r="1.5" />
-      <circle cx="9" cy="18" r="1.5" />
-      <circle cx="15" cy="18" r="1.5" />
-    </svg>
-  );
-}
-
 // --- Collapsible Section ---
 
 function Section({
@@ -174,45 +157,20 @@ function Section({
   open,
   onToggle,
   children,
-  draggable,
-  onDragStart,
-  onDragOver,
-  onDragEnd,
-  onDrop,
 }: {
   title: string;
   count?: number;
   open: boolean;
   onToggle: () => void;
   children: React.ReactNode;
-  draggable?: boolean;
-  onDragStart?: () => void;
-  onDragOver?: (e: React.DragEvent) => void;
-  onDragEnd?: () => void;
-  onDrop?: () => void;
 }) {
   return (
-    <section
-      className="mb-5"
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-    >
+    <section className="mb-5">
       <button
         type="button"
         onClick={onToggle}
         className="w-full flex items-center gap-2 py-2 cursor-pointer group"
       >
-        {draggable && (
-          <span
-            className="shrink-0 opacity-30 group-hover:opacity-70 transition-opacity"
-            draggable
-            onDragStart={(e) => { e.stopPropagation(); onDragStart?.(); }}
-            onDragEnd={(e) => { e.stopPropagation(); onDragEnd?.(); }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <DragHandleIcon />
-          </span>
-        )}
         <ChevronIcon open={open} />
         <h2 className="text-base font-semibold text-gray-800 group-hover:text-[#1b2a4a] transition-colors">
           {title}
@@ -341,9 +299,9 @@ function App() {
   const [mobileView, setMobileView] = useState<"form" | "preview">("form");
   const [activeJobId, setActiveJobId] = useState<number | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [optionsPanelOpen, setOptionsPanelOpen] = useState(false);
   const [jobs, setJobs] = useState<JobListItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const dragSrcRef = useRef<string | null>(null);
 
   const fetchVersions = useCallback(async () => {
     try {
@@ -592,6 +550,12 @@ function App() {
         onSelectJob={switchToJob}
         onJobsChanged={fetchJobs}
       />
+      <OptionsPanel
+        open={optionsPanelOpen}
+        onClose={() => setOptionsPanelOpen(false)}
+        data={data}
+        update={update}
+      />
       {/* Panel toggle */}
       <button
         type="button"
@@ -602,6 +566,19 @@ function App() {
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      </button>
+      {/* Options panel toggle */}
+      <button
+        type="button"
+        onClick={() => setOptionsPanelOpen((o) => !o)}
+        aria-expanded={optionsPanelOpen}
+        className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-[#1b2a4a] text-white px-1.5 py-4 rounded-l-lg shadow-lg hover:bg-[#253d6e] transition-colors"
+        title="PDF options"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       </button>
 
@@ -810,29 +787,8 @@ function App() {
 
           {/* Dynamic orderable sections */}
           {(data.sectionOrder ?? [...CANONICAL_SECTIONS]).map((key) => {
-            const dragProps = {
-              draggable: true as const,
-              onDragStart: () => { dragSrcRef.current = key; },
-              onDragOver: (e: React.DragEvent) => e.preventDefault(),
-              onDragEnd: () => { dragSrcRef.current = null; },
-              onDrop: () => {
-                const src = dragSrcRef.current;
-                if (!src || src === key) return;
-                update((d) => {
-                  const order = [...(d.sectionOrder ?? [...CANONICAL_SECTIONS])];
-                  const from = order.indexOf(src);
-                  const to = order.indexOf(key);
-                  if (from === -1 || to === -1) return;
-                  order.splice(from, 1);
-                  order.splice(to, 0, src);
-                  d.sectionOrder = order;
-                });
-                dragSrcRef.current = null;
-              },
-            };
-
             if (key === "skills") return (
-              <Section key="skills" title="Skills" count={data.skills.length} open={isOpen("skills")} onToggle={() => toggleSection("skills")} {...dragProps}>
+              <Section key="skills" title="Skills" count={data.skills.length} open={isOpen("skills")} onToggle={() => toggleSection("skills")}>
                 {data.skills.map((skill, si) => (
                   <div key={si} className="flex flex-col sm:flex-row gap-2 sm:items-center mb-3">
                     <div className="flex gap-2 items-center">
@@ -897,7 +853,7 @@ function App() {
             );
 
             if (key === "achievements") return (
-              <Section key="achievements" title="Achievements" count={data.achievements?.length ?? 0} open={isOpen("achievements")} onToggle={() => toggleSection("achievements")} {...dragProps}>
+              <Section key="achievements" title="Achievements" count={data.achievements?.length ?? 0} open={isOpen("achievements")} onToggle={() => toggleSection("achievements")}>
                 {(data.achievements ?? []).map((item, ai) => (
                   <div key={ai} className="flex gap-2 items-center mb-3">
                     <input
@@ -939,7 +895,7 @@ function App() {
             );
 
             if (key === "experience") return (
-              <Section key="experience" title="Experience" count={data.experience.length} open={isOpen("experience")} onToggle={() => toggleSection("experience")} {...dragProps}>
+              <Section key="experience" title="Experience" count={data.experience.length} open={isOpen("experience")} onToggle={() => toggleSection("experience")}>
                 {data.experience.map((exp, ei) => (
                   <div key={ei} className={cardClasses}>
                     <div className="flex items-end gap-3 mb-3">
@@ -1035,21 +991,6 @@ function App() {
                       >
                         <span className="text-lg leading-none">+</span> Add Role
                       </button>
-                      <label className="inline-flex flex-row items-center gap-1.5 cursor-pointer select-none ml-auto">
-                        <input
-                          type="checkbox"
-                          className="accent-[#1b2a4a]"
-                          checked={!!exp.pageBreakAfter}
-                          onChange={(e) =>
-                            update((d) => {
-                              d.experience[ei].pageBreakAfter = e.target.checked;
-                            })
-                          }
-                        />
-                        <span className="text-xs text-gray-400">
-                          Page break after
-                        </span>
-                      </label>
                     </div>
                   </div>
                 ))}
@@ -1067,7 +1008,7 @@ function App() {
             );
 
             if (key === "projects") return (
-              <Section key="projects" title="Projects" count={data.projects.length} open={isOpen("projects")} onToggle={() => toggleSection("projects")} {...dragProps}>
+              <Section key="projects" title="Projects" count={data.projects.length} open={isOpen("projects")} onToggle={() => toggleSection("projects")}>
                 {data.projects.map((proj, pi) => (
                   <div key={pi} className={cardClasses}>
                     <div className="flex items-end gap-3 mb-2">
@@ -1108,21 +1049,6 @@ function App() {
                         }
                       />
                     </label>
-                    <label className="inline-flex flex-row items-center gap-1.5 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        className="accent-[#1b2a4a]"
-                        checked={!!proj.pageBreakAfter}
-                        onChange={(e) =>
-                          update((d) => {
-                            d.projects[pi].pageBreakAfter = e.target.checked;
-                          })
-                        }
-                      />
-                      <span className="text-xs text-gray-400">
-                        Page break after
-                      </span>
-                    </label>
                   </div>
                 ))}
                 <button
@@ -1139,7 +1065,7 @@ function App() {
             );
 
             if (key === "education") return (
-              <Section key="education" title="Education" count={data.education.length} open={isOpen("education")} onToggle={() => toggleSection("education")} {...dragProps}>
+              <Section key="education" title="Education" count={data.education.length} open={isOpen("education")} onToggle={() => toggleSection("education")}>
                 {data.education.map((edu, ei) => (
                   <div key={ei} className={cardClasses}>
                     <div className="flex flex-col sm:flex-row sm:items-end gap-3 mb-2">
@@ -1212,21 +1138,6 @@ function App() {
                         }
                       />
                     </label>
-                    <label className="inline-flex flex-row items-center gap-1.5 cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        className="accent-[#1b2a4a]"
-                        checked={!!edu.pageBreakAfter}
-                        onChange={(e) =>
-                          update((d) => {
-                            d.education[ei].pageBreakAfter = e.target.checked;
-                          })
-                        }
-                      />
-                      <span className="text-xs text-gray-400">
-                        Page break after
-                      </span>
-                    </label>
                   </div>
                 ))}
                 <button
@@ -1243,7 +1154,7 @@ function App() {
             );
 
             if (key === "interests") return (
-              <Section key="interests" title="Interests" count={data.interests.length} open={isOpen("interests")} onToggle={() => toggleSection("interests")} {...dragProps}>
+              <Section key="interests" title="Interests" count={data.interests.length} open={isOpen("interests")} onToggle={() => toggleSection("interests")}>
                 {data.interests.map((item, ii) => (
                   <div key={ii} className="flex gap-2 items-center mb-3">
                     <input
