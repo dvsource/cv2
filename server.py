@@ -15,6 +15,7 @@ from db import (
     init_db, seed_from_json, save_version, get_latest, list_versions, get_version,
     create_job, list_jobs, get_job, update_job, delete_job,
     save_job_cv_version, get_latest_job_cv, list_job_cv_versions, get_job_cv_version,
+    deduplicate_versions, deduplicate_job_cv_versions,
 )
 from llm import extract_job_info, LLMError
 
@@ -96,6 +97,8 @@ def migrate_periods(data: dict) -> bool:
 
 init_db()
 seed_from_json(CV_PATH)
+deduplicate_versions()
+deduplicate_job_cv_versions()
 
 
 @app.get("/api/cv")

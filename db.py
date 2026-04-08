@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import sqlite3
@@ -53,6 +54,12 @@ def init_db():
     conn.close()
 
 
+def _cv_hash(data: dict) -> str:
+    """Stable SHA-256 of CV JSON with sorted keys — used to detect identical versions."""
+    normalised = json.dumps(data, sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(normalised.encode()).hexdigest()
+
+
 def seed_from_json(path):
     conn = _connect()
     count = conn.execute("SELECT COUNT(*) FROM cv_versions").fetchone()[0]
@@ -68,6 +75,12 @@ def seed_from_json(path):
 
 def save_version(data, source="manual"):
     conn = _connect()
+    latest = conn.execute(
+        "SELECT id, data FROM cv_versions ORDER BY id DESC LIMIT 1"
+    ).fetchone()
+    if latest and _cv_hash(json.loads(latest["data"])) == _cv_hash(data):
+        conn.close()
+        return latest["id"]  # identical — no new version needed
     cur = conn.execute(
         "INSERT INTO cv_versions (data, source) VALUES (?, ?)",
         (json.dumps(data, ensure_ascii=False), source),
@@ -223,6 +236,13 @@ def delete_job(job_id):
 
 def save_job_cv_version(job_id, data, source="manual"):
     conn = _connect()
+    latest = conn.execute(
+        "SELECT id, data FROM job_cv_versions WHERE job_id = ? ORDER BY id DESC LIMIT 1",
+        (job_id,),
+    ).fetchone()
+    if latest and _cv_hash(json.loads(latest["data"])) == _cv_hash(data):
+        conn.close()
+        return latest["id"]  # identical — no new version needed
     cur = conn.execute(
         "INSERT INTO job_cv_versions (job_id, data, source) VALUES (?, ?, ?)",
         (job_id, json.dumps(data, ensure_ascii=False), source),
@@ -269,3 +289,54 @@ def get_job_cv_version(version_id):
         "created_at": row["created_at"],
         "source": row["source"],
     }
+
+
+# ── Deduplication ─────────────────────────────────────────────
+
+
+def deduplicate_versions() -> int:
+    """Remove duplicate general CV versions, keeping the latest of each unique JSON.
+    Returns number of rows deleted."""
+    conn = _connect()
+    rows = conn.execute(
+        "SELECT id, data FROM cv_versions ORDER BY id ASC"
+    ).fetchall()
+    seen: dict[str, int] = {}
+    to_delete: list[int] = []
+    for row in rows:
+        h = _cv_hash(json.loads(row["data"]))
+        if h in seen:
+            to_delete.append(seen[h])  # older duplicate — queue for deletion
+        seen[h] = row["id"]  # keep track of latest id for this hash
+    if to_delete:
+        conn.execute(
+            f"DELETE FROM cv_versions WHERE id IN ({','.join('?' * len(to_delete))})",
+            to_delete,
+        )
+        conn.commit()
+    conn.close()
+    return len(to_delete)
+
+
+def deduplicate_job_cv_versions() -> int:
+    """Remove duplicate job CV versions across all jobs, keeping the latest of each unique JSON per job.
+    Returns number of rows deleted."""
+    conn = _connect()
+    rows = conn.execute(
+        "SELECT id, job_id, data FROM job_cv_versions ORDER BY id ASC"
+    ).fetchall()
+    seen: dict[tuple, int] = {}
+    to_delete: list[int] = []
+    for row in rows:
+        key = (row["job_id"], _cv_hash(json.loads(row["data"])))
+        if key in seen:
+            to_delete.append(seen[key])
+        seen[key] = row["id"]
+    if to_delete:
+        conn.execute(
+            f"DELETE FROM job_cv_versions WHERE id IN ({','.join('?' * len(to_delete))})",
+            to_delete,
+        )
+        conn.commit()
+    conn.close()
+    return len(to_delete)
