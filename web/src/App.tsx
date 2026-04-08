@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { CvData, VersionSummary, JobListItem, Period, PeriodDate } from "./types";
+// @ts-expect-error - PdfOptions imported for future use (Task 4: Wire OptionsPanel into App.tsx)
+import type { CvData, PdfOptions, VersionSummary, JobListItem, Period, PeriodDate } from "./types";
 import { JobPanel } from "./JobPanel";
 
 interface Toast {
