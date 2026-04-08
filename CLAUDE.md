@@ -33,9 +33,30 @@ docker compose up --build           # Full stack on :5000, mounts cv.json
 | `build_cv.py` | PDF engine: `build_pdf(data, output_path)` — fonts, styles, section builders, BaseDocTemplate with zero-padding Frame. Section order is dynamic via `SECTION_BUILDERS` dict + `sectionOrder` field. |
 | `web/src/App.tsx` | Single-component editor with all form sections, PDF preview iframe, Tailwind styling. |
 | `cv.json` | CV data (volume-mounted in Docker) |
-| `db.py` | SQLite version history (WAL mode) |
+| `db.py` | SQLite version history (WAL mode) + `jobs` and `job_cv_versions` tables with CRUD |
+| `llm.py` | GLM 5.1 LLM client; `extract_job_info(text, fill_company_role)` → `{company, role, description, tech_skills, other_skills, key_points}` |
+| `web/src/types.ts` | Shared TypeScript types (CV types + Job types: `Job`, `JobListItem`, `JobStatus`, `JobSummary`) |
+| `web/src/JobPanel.tsx` | Left overlay panel: job list, create form (paste/manual), job detail + LLM summary |
 
-**API endpoints**: `GET /api/cv` (load + migrate), `PUT /api/cv` (save), `POST /api/generate` (PDF), `GET /api/versions`, `GET /api/versions/<id>`
+**API endpoints**:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/cv` | Load CV + migrate legacy periods |
+| PUT | `/api/cv` | Save CV |
+| POST | `/api/generate` | Generate PDF |
+| GET | `/api/versions` | List CV versions |
+| GET | `/api/versions/<id>` | Get specific CV version |
+| GET | `/api/jobs` | List all jobs |
+| POST | `/api/jobs` | Create job; mode: `paste` (LLM extracts all fields) or `manual` (LLM enriches description) |
+| GET | `/api/jobs/<id>` | Get job detail |
+| PUT | `/api/jobs/<id>` | Update job fields; `re_extract: true` re-runs LLM on description |
+| DELETE | `/api/jobs/<id>` | Delete job and all its CV versions |
+| GET | `/api/jobs/<id>/cv` | Get latest job CV (seeds from General if none exists) |
+| PUT | `/api/jobs/<id>/cv` | Save job CV (creates new version) |
+| POST | `/api/jobs/<id>/generate` | Generate PDF for job CV |
+| GET | `/api/jobs/<id>/versions` | List CV versions for job |
+| GET | `/api/jobs/<id>/versions/<vid>` | Get specific job CV version |
 
 ## Key Constraints
 
@@ -46,6 +67,11 @@ docker compose up --build           # Full stack on :5000, mounts cv.json
 - **Tailwind v4**: Uses `@tailwindcss/vite` plugin and `@import "tailwindcss"` (not v3 directives/config).
 - **Vite proxy**: Dev server proxies `/api` to `http://localhost:5000` (configured in `vite.config.ts`).
 - **Hyperlinks in PDF**: Contact links use ReportLab `<link href="...">` Paragraph markup. The href is XML-escaped via `_xml_escape`. URLs without a scheme get `https://` prepended.
+- **LLM API**: GLM 5.1 via OpenAI-compatible endpoint `https://api.z.ai/api/coding/paas/v4`. Model ID: `"glm-5.1"`. API key loaded from `.env` as `GLM_API_KEY` via `python-dotenv`. Raises `LLMError` on failure; Flask routes return 502.
+- **Job context**: `activeJobId: number | null` in App.tsx controls whether save/generate/versions route to `/api/jobs/<id>/...` or `/api/cv`. `switchToJob(id)` loads the correct CV and closes the panel.
+- **Job CV seeding**: `GET /api/jobs/<id>/cv` returns the latest job-specific CV version, or seeds from the current General latest if none exists (does not auto-save the seed).
+- **JobPanel**: Always mounted in DOM. `open` prop controls `translate-x-0` vs `-translate-x-full`. Three views: `list`, `create`, `detail`.
+- **Column allowlist**: `update_job()` in `db.py` validates field names against `_ALLOWED_JOB_FIELDS` set before building dynamic SQL to prevent injection.
 
 ## CV Data Shape
 
