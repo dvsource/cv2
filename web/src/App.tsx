@@ -192,10 +192,7 @@ function Section({
   return (
     <section
       className="mb-5"
-      draggable={draggable}
-      onDragStart={onDragStart}
       onDragOver={onDragOver}
-      onDragEnd={onDragEnd}
       onDrop={onDrop}
     >
       <button
@@ -204,7 +201,13 @@ function Section({
         className="w-full flex items-center gap-2 py-2 cursor-pointer group"
       >
         {draggable && (
-          <span className="shrink-0 opacity-30 group-hover:opacity-70 transition-opacity">
+          <span
+            className="shrink-0 opacity-30 group-hover:opacity-70 transition-opacity"
+            draggable
+            onDragStart={(e) => { e.stopPropagation(); onDragStart?.(); }}
+            onDragEnd={(e) => { e.stopPropagation(); onDragEnd?.(); }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <DragHandleIcon />
           </span>
         )}
