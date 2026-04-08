@@ -1,66 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-
-type PeriodDate = { year: number; month: number };
-type Period = { start: PeriodDate; end: PeriodDate | "present" };
-
-interface Contact {
-  name: string;
-  title?: string;
-  email: string;
-  phone: string;
-  website: string;
-  linkedin: string;
-  github: string;
-}
-
-interface Role {
-  title: string;
-  period: Period;
-  description: string;
-}
-
-interface Experience {
-  company: string;
-  roles: Role[];
-  pageBreakAfter?: boolean;
-}
-
-interface Project {
-  name: string;
-  description: string;
-  pageBreakAfter?: boolean;
-}
-
-interface Education {
-  institution: string;
-  degree?: string;
-  period: Period;
-  focus: string[];
-  pageBreakAfter?: boolean;
-}
-
-interface Skill {
-  label: string;
-  items: string;
-}
-
-interface CvData {
-  contact: Contact;
-  summary: string;
-  skills: Skill[];
-  achievements?: string[];
-  experience: Experience[];
-  projects: Project[];
-  education: Education[];
-  interests: string[];
-  sectionOrder?: string[];
-}
-
-interface VersionSummary {
-  id: number;
-  created_at: string;
-  source: string;
-}
+import type { CvData, VersionSummary, JobListItem, Period, PeriodDate } from "./types";
 
 interface Toast {
   message: string;
@@ -394,30 +333,47 @@ function App() {
   const [versions, setVersions] = useState<VersionSummary[]>([]);
   const [activeVersionId, setActiveVersionId] = useState<number | null>(null);
   const [mobileView, setMobileView] = useState<"form" | "preview">("form");
+  const [activeJobId, setActiveJobId] = useState<number | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [jobs, setJobs] = useState<JobListItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragSrcRef = useRef<string | null>(null);
 
-  const refreshVersions = useCallback(async () => {
+  const fetchVersions = useCallback(async () => {
     try {
-      const res = await fetch("/api/versions");
+      const url = activeJobId != null ? `/api/jobs/${activeJobId}/versions` : "/api/versions";
+      const res = await fetch(url);
       const list: VersionSummary[] = await res.json();
       setVersions(list);
       if (list.length > 0) setActiveVersionId(list[0].id);
     } catch {
       // silently ignore
     }
+  }, [activeJobId]);
+
+  const fetchData = useCallback(async () => {
+    const [cvData, versionList] = await Promise.all([
+      fetch("/api/cv").then((r) => r.json()),
+      fetch("/api/versions").then((r) => r.json()),
+    ]);
+    setData(normaliseCvData(cvData));
+    setVersions(versionList);
+    if (versionList.length > 0) setActiveVersionId(versionList[0].id);
+  }, []);
+
+  const fetchJobs = useCallback(async () => {
+    const res = await fetch("/api/jobs");
+    if (res.ok) setJobs(await res.json());
   }, []);
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/cv").then((r) => r.json()),
-      fetch("/api/versions").then((r) => r.json()),
-    ]).then(([cvData, versionList]) => {
-      setData(normaliseCvData(cvData));
-      setVersions(versionList);
-      if (versionList.length > 0) setActiveVersionId(versionList[0].id);
-    });
-  }, []);
+    fetchData();
+    fetchJobs();
+  }, [fetchData, fetchJobs]);
+
+  useEffect(() => {
+    fetchVersions();
+  }, [activeJobId, fetchVersions]);
 
   // Auto-dismiss toast
   useEffect(() => {
@@ -476,7 +432,8 @@ function App() {
   const generate = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/generate", {
+      const url = activeJobId != null ? `/api/jobs/${activeJobId}/generate` : "/api/generate";
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -487,7 +444,7 @@ function App() {
       setPdfUrl(URL.createObjectURL(blob));
       setMobileView("preview");
       showToast("PDF generated successfully", "success");
-      refreshVersions();
+      fetchVersions();
     } catch {
       showToast("Failed to generate PDF", "error");
     } finally {
@@ -498,21 +455,22 @@ function App() {
   const download = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/generate", {
+      const url = activeJobId != null ? `/api/jobs/${activeJobId}/generate` : "/api/generate";
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Generation failed");
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+      const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
+      a.href = blobUrl;
       a.download = `${data?.contact.name || "cv"}.pdf`;
       a.click();
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(blobUrl);
       showToast("PDF downloaded", "success");
-      refreshVersions();
+      fetchVersions();
     } catch {
       showToast("Failed to download PDF", "error");
     } finally {
@@ -522,7 +480,8 @@ function App() {
 
   const restoreVersion = async (id: number) => {
     try {
-      const res = await fetch(`/api/versions/${id}`);
+      const url = activeJobId != null ? `/api/jobs/${activeJobId}/versions/${id}` : `/api/versions/${id}`;
+      const res = await fetch(url);
       if (!res.ok) throw new Error("Fetch failed");
       const version = await res.json();
       setData(normaliseCvData(version.data));
@@ -535,6 +494,18 @@ function App() {
       showToast("Failed to restore version", "error");
     }
   };
+
+  const switchToJob = useCallback(async (jobId: number | null) => {
+    setActiveJobId(jobId);
+    const url = jobId != null ? `/api/jobs/${jobId}/cv` : "/api/cv";
+    const res = await fetch(url);
+    if (res.ok) {
+      const raw = await res.json();
+      setData(normaliseCvData(raw));
+      setPdfUrl(null);
+    }
+    setPanelOpen(false);
+  }, []);
 
   const exportJson = () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -588,10 +559,40 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen">
+      {/* Panel toggle */}
+      <button
+        type="button"
+        onClick={() => setPanelOpen(o => !o)}
+        aria-expanded={panelOpen}
+        className="fixed left-0 top-1/2 -translate-y-1/2 z-40 bg-[#1b2a4a] text-white px-1.5 py-4 rounded-r-lg shadow-lg hover:bg-[#253d6e] transition-colors"
+        title="Job tracker"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      </button>
+
       {/* Top Header Bar */}
       <header className="bg-[#1b2a4a] text-white px-3 sm:px-6 py-3 flex items-center justify-between shrink-0 shadow-lg z-10">
         <div className="flex items-center gap-3">
           <h1 className="text-lg font-semibold tracking-wide">CV Editor</h1>
+          {activeJobId != null && (() => {
+            const job = jobs.find(j => j.id === activeJobId);
+            return job ? (
+              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium truncate max-w-xs">
+                {job.company} — {job.role}
+              </span>
+            ) : null;
+          })()}
+          {activeJobId != null && (
+            <button
+              type="button"
+              onClick={() => switchToJob(null)}
+              className="text-xs text-gray-400 hover:text-gray-600 underline"
+            >
+              Switch to General
+            </button>
+          )}
           {unsaved && (
             <span className="flex items-center gap-1.5 text-xs text-amber-300">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-300" />
