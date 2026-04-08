@@ -1,10 +1,12 @@
 {
+  "achievements": [],
   "contact": {
     "email": "virajkaushalye1@gmail.com",
     "github": "github.com/dvsource",
-    "linkedin": "linkedin/in/dvsource",
+    "linkedin": "linkedin.com/in/dvsource",
     "name": "Viraj Kaushalye",
-    "phone": "+94 711 25 20 321",
+    "phone": "+94 711 25 20 32",
+    "title": "Full Stack Engineer",
     "website": "v4k8.dev"
   },
   "education": [
@@ -16,7 +18,16 @@
         "Statistics"
       ],
       "institution": "University of Sri Jayewardenepura",
-      "period": "2015 - 2018"
+      "period": {
+        "end": {
+          "month": 12,
+          "year": 2018
+        },
+        "start": {
+          "month": 1,
+          "year": 2015
+        }
+      }
     },
     {
       "focus": [
@@ -25,16 +36,35 @@
         "Chemistry"
       ],
       "institution": "D. S. Senanayake College",
-      "period": "2006 - 2014"
+      "period": {
+        "end": {
+          "month": 12,
+          "year": 2014
+        },
+        "start": {
+          "month": 1,
+          "year": 2006
+        }
+      }
     }
   ],
   "experience": [
     {
       "company": "Matific - Sri Lanka",
+      "pageBreakAfter": false,
       "roles": [
         {
-          "description": "Built data-intensive activity pages, advanced filtering systems, reporting modules, and core admin tools using Angular and Django, optimizing performance for large datasets. (Matific - Teacher Site)\nDeveloped serverless microservices with AWS Lambda and a Rust PoC for high-performance computation, reducing operational costs.\nIncreased unit test coverage to 90%+, enhancing reliability and regression safety.\nWorked with global cross-functional teams (Mobile, Unity, Content, ML/AI, Support) to resolve production issues and improve integrations.\nContributed to company-wide UI component migration, improving consistency and maintainability.\nDelivered an Accessibility-compliant product version under tight deadlines for European and North American markets.\nBuilt a RAG-based AI agent using LangChain to assist backend support teams in troubleshooting customer issues without requiring developer intervention.",
-          "period": "2022 - 2026",
+          "description": "Built data-intensive activity pages, advanced filtering systems, reporting modules, and core admin tools using Angular and Django, optimizing performance for large datasets. (Matific - Teacher Site)\nDeveloped serverless microservices with AWS Lambda and a Rust PoC for high-performance computation, reducing operational costs.\nIncreased unit test coverage to 90%+, enhancing reliability and regression safety.\nWorked with global cross-functional teams (Mobile, Unity, Content, ML/AI, Support) to resolve production issues and improve integrations.\nContributed to company-wide UI component migration, improving consistency and maintainability.\nDelivered an Accessibility-compliant product version under tight deadlines for European and North American markets.\nBuilt a RAG-based AI agent using LangChain to assist backend support teams in troubleshooting customer issues without requiring developer intervention.\nMigrated the frontend client application (internal) from Angular to React to improve performance and maintainability.",
+          "period": {
+            "end": {
+              "month": 4,
+              "year": 2026
+            },
+            "start": {
+              "month": 1,
+              "year": 2022
+            }
+          },
           "title": "Senior Software Engineer"
         }
       ]
@@ -45,18 +75,45 @@
         {
           "description": "Developed and maintained core functionality for the company’s B2B web platform, prioritizing performance, reliability, and usability.\nBuilt Angular-based WordPress widgets, migrated components to Web Elements, and deployed scalable Docker-Kubernetes infrastructure with NGINX.\nMentored junior developers, conducted productivity workshops, and hosted ongoing developer forums to enhance team learning.",
           "pageBreakAfter": true,
-          "period": "2020 - 2022",
+          "period": {
+            "end": {
+              "month": 12,
+              "year": 2022
+            },
+            "start": {
+              "month": 1,
+              "year": 2020
+            }
+          },
           "title": "Senior Software Engineer"
         },
         {
           "description": "Migrated Angular 7 applications to Angular 9; contributed to front-end modules for B2B travel functionalities (Supplier, Insurance, Generic).\nDeveloped internal project management tools integrating Jira and GitLab APIs; built reporting modules for management insights.\nImproved B2C travel platform (FlyDubai) booking flows and UI performance.",
           "pageBreakAfter": false,
-          "period": "2019 - 2020",
+          "period": {
+            "end": {
+              "month": 12,
+              "year": 2020
+            },
+            "start": {
+              "month": 1,
+              "year": 2019
+            }
+          },
           "title": "Software Engineer"
         },
         {
           "description": "Developed a full-stack Leave Management system for the enterprise social network (Kriyo.net).\nContributed to chatbot features, reporting modules, bug fixes, and overall application improvements.",
-          "period": "2019",
+          "period": {
+            "end": {
+              "month": 12,
+              "year": 2019
+            },
+            "start": {
+              "month": 1,
+              "year": 2019
+            }
+          },
           "title": "Trainee Software Engineer"
         }
       ]
@@ -69,21 +126,29 @@
       "name": "RAG-based Knowledge-based Assistant"
     },
     {
-      "description": "A project I built for my wife. It is a collection of tools designed to support her day-to-day work at school and private classes.\n\nThe system includes AI-powered features to assist with her teaching career, such as generating new Physics problem ideas, simplifying complex concepts, and helping create structured lesson plans and schedules.",
+      "description": "A project I built for my wife. It is a collection of tools designed to support her day-to-day work at school and private classes.\n\nThe system includes AI-powered features to assist with her teaching career, such as generating new Physics problem ideas, simplifying complex concepts, and helping create structured lesson plans.",
       "name": "A/L Physics Teacher Assistant + Class Scheduler"
     },
     {
-      "description": "My personal website and portfolio combined with a comprehensive life management toolkit.\n\nIt includes tools for task management, time management, habit tracking, finance and expense tracking, and TBR tracking. The system also features a CLI tool that allows me to insert and retrieve data directly from the terminal without interrupting my workflow.",
-      "name": "Personal Life Management System"
+      "description": "Designed and developed a full-stack admin portal to manage companies, clients, projects, and contracts with documents upload and manage.\nArchitected the system end-to-end and delivered it to production within 4 months as a part-time freelance project.\nBuilt with NestJS, Angular, AWS S3, NX monorepo, Typescript",
+      "name": "Planflex - Admin Portal for a Construction Consultancy Company"
     },
     {
-      "description": "Final-year university project — an augmented reality application built with Unity and iOS ARKit.\n\nThe application was designed to help visitors navigate large buildings by providing real-time, AR-based indoor guidance and directional assistance.",
+      "description": "Final-year university project; an augmented reality application\nThe application was designed to help visitors navigate large buildings by providing real-time, AR-based\nindoor guidance and directional assistance.\nBuilt with Unity and iOS ARKit.",
       "name": "AR-based Indoor Navigation Guide"
     }
   ],
+  "sectionOrder": [
+    "skills",
+    "experience",
+    "projects",
+    "education",
+    "achievements",
+    "interests"
+  ],
   "skills": [
     {
-      "items": "Java, JavaScript/TypeScript, C#, Python, PHP, Go, Rust",
+      "items": "Java, JavaScript/TypeScript, Python, C#",
       "label": "Languages"
     },
     {
@@ -91,11 +156,11 @@
       "label": "Frontend"
     },
     {
-      "items": "Spring Boot, Node.js, Django, Flask",
+      "items": "Spring Boot, Node.js, NestJS, Django, Flask",
       "label": "Backend"
     },
     {
-      "items": "Next js",
+      "items": "Next js, PHP",
       "label": "Fullstack"
     },
     {

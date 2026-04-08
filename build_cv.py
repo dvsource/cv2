@@ -76,6 +76,32 @@ def esc(text: str) -> str:
     return _xml_escape(str(text))
 
 
+MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+
+
+def format_period(period) -> str:
+    """Format a period dict as 'Mar 2022 – Dec 2023' or 'Mar 2022 – Present'.
+    Falls back to str(period) for legacy string values."""
+    if isinstance(period, str):
+        return period
+    if not isinstance(period, dict):
+        return ""
+    start = period.get("start", {})
+    end = period.get("end", {})
+    sm = max(1, min(int(start.get("month", 1)), 12))
+    sy = start.get("year", "")
+    start_str = f"{MONTH_ABBR[sm - 1]} {sy}" if sy else ""
+    if end == "present":
+        end_str = "Present"
+    elif isinstance(end, dict):
+        em = max(1, min(int(end.get("month", 12)), 12))
+        ey = end.get("year", "")
+        end_str = f"{MONTH_ABBR[em - 1]} {ey}" if ey else ""
+    else:
+        end_str = ""
+    return f"{start_str} \u2013 {end_str}" if end_str else start_str
+
+
 class SpacedText(Flowable):
     """Draw uppercase text with true letter-spacing via canvas charSpace."""
 
@@ -130,6 +156,14 @@ def make_styles() -> dict:
         fontName="NotoMono",
         fontSize=26,
         leading=30,
+        textColor=COLOR_DARK,
+    )
+
+    s["title"] = ParagraphStyle(
+        "title",
+        fontName="NotoSans",
+        fontSize=11,
+        leading=15,
         textColor=COLOR_DARK,
     )
 
@@ -190,6 +224,8 @@ def make_styles() -> dict:
         fontSize=9.5,
         leading=13.5,
         textColor=COLOR_MUTED,
+        leftIndent=12,
+        firstLineIndent=-8,
     )
 
     s["proj_name"] = ParagraphStyle(
@@ -206,6 +242,8 @@ def make_styles() -> dict:
         fontSize=9.5,
         leading=13,
         textColor=COLOR_MUTED,
+        leftIndent=12,
+        firstLineIndent=-8,
     )
 
     s["edu_main"] = ParagraphStyle(
@@ -231,33 +269,43 @@ def make_styles() -> dict:
 # ── Section Builders ───────────────────────────────────────────
 
 
-def build_contact(contact: dict, styles: dict) -> list:
-    """Contact info rows with Unicode icon prefixes and middle-dot separators."""
+def _normalise_url(url: str) -> str:
+    """Prepend https:// if no scheme is present."""
+    if url and not url.startswith(("http://", "https://")):
+        return "https://" + url
+    return url
+
+
+def build_contact(contact: dict, styles: dict, content_width: float = 0) -> list:
+    """Contact info rows with hyperlinks for email, website, linkedin, github."""
     items = []
     sep = f"{NBSP * 2}\xb7{NBSP * 2}"
 
+    def linked(text: str, href: str) -> str:
+        return f'<link href="{_xml_escape(href)}">{esc(text)}</link>'
+
     row1 = []
     if contact.get("email"):
-        row1.append(esc(contact["email"]))
+        row1.append(linked(contact["email"], f'mailto:{contact["email"]}'))
     if contact.get("phone"):
         row1.append(esc(contact["phone"]))
     if contact.get("website"):
-        row1.append(esc(contact["website"]))
+        row1.append(linked(contact["website"], _normalise_url(contact["website"])))
     if row1:
         items.append(Paragraph(sep.join(row1), styles["contact"]))
 
     row2 = []
     if contact.get("linkedin"):
-        row2.append(esc(contact["linkedin"]))
+        row2.append(linked(contact["linkedin"], _normalise_url(contact["linkedin"])))
     if contact.get("github"):
-        row2.append(esc(contact["github"]))
+        row2.append(linked(contact["github"], _normalise_url(contact["github"])))
     if row2:
         items.append(Paragraph(sep.join(row2), styles["contact"]))
 
     return items
 
 
-def build_skills(skills: list, styles: dict) -> list:
+def build_skills(skills: list, styles: dict, content_width: float = 0) -> list:
     """Build the skills section."""
     items = section_header("Skills", styles)
 
@@ -272,6 +320,18 @@ def build_skills(skills: list, styles: dict) -> list:
     return items
 
 
+def build_achievements(achievements: list, styles: dict, content_width: float = 0) -> list:
+    """Build the achievements section — plain bullet list, no dates or labels."""
+    if not achievements:
+        return []
+    items = section_header("Achievements", styles)
+    for achievement in achievements:
+        text = achievement.strip() if isinstance(achievement, str) else str(achievement)
+        if text:
+            items.append(Paragraph(f"\xb7{NBSP * 2}{esc(text)}", styles["bullet"]))
+    return items
+
+
 def build_experience(experience: list, styles: dict, content_width: float) -> list:
     """Build the experience section."""
     items = section_header("Experience", styles)
@@ -280,12 +340,12 @@ def build_experience(experience: list, styles: dict, content_width: float) -> li
         company = esc(exp["company"])
         for role in exp.get("roles", []):
             title = esc(role["title"])
-            period = esc(role.get("period", ""))
+            period = esc(format_period(role.get("period", {})))
 
             title_p = Paragraph(f"<b>{company} \u2014 {title}</b>", styles["exp_title"])
             date_p = Paragraph(period, styles["exp_date"])
 
-            date_w = 22 * mm
+            date_w = 40 * mm
             t = Table(
                 [[title_p, date_p]],
                 colWidths=[content_width - date_w, date_w],
@@ -323,7 +383,7 @@ def build_experience(experience: list, styles: dict, content_width: float) -> li
     return items
 
 
-def build_projects(projects: list, styles: dict) -> list:
+def build_projects(projects: list, styles: dict, content_width: float = 0) -> list:
     """Build the projects section."""
     items = section_header("Projects", styles)
 
@@ -349,7 +409,7 @@ def build_education(education: list, styles: dict, content_width: float) -> list
     for edu in education:
         degree = esc(edu.get("degree", ""))
         institution = esc(edu["institution"])
-        period = esc(edu.get("period", ""))
+        period = esc(format_period(edu.get("period", {})))
         focus = edu.get("focus", [])
 
         if degree:
@@ -360,7 +420,7 @@ def build_education(education: list, styles: dict, content_width: float) -> list
         main_p = Paragraph(main_text, styles["edu_main"])
         date_p = Paragraph(period, styles["edu_date"])
 
-        date_w = 22 * mm
+        date_w = 40 * mm
         t = Table(
             [[main_p, date_p]],
             colWidths=[content_width - date_w, date_w],
@@ -390,16 +450,14 @@ def build_education(education: list, styles: dict, content_width: float) -> list
     return items
 
 
-def build_interests(interests: list, styles: dict) -> list:
+def build_interests(interests: list, styles: dict, content_width: float = 0) -> list:
     """Build the interests section."""
     items = section_header("Interests", styles)
 
     for interest in interests:
         text = interest.strip() if isinstance(interest, str) else str(interest)
         if text:
-            items.append(
-                Paragraph(f"\xb7{NBSP * 2}{esc(text)}", styles["bullet"])
-            )
+            items.append(Paragraph(f"\xb7{NBSP * 2}{esc(text)}", styles["bullet"]))
 
     return items
 
@@ -415,32 +473,39 @@ def build_pdf(data: dict, output_path: str):
 
     # Name
     story.append(Paragraph(esc(data["contact"]["name"]), styles["name"]))
+    title = data["contact"].get("title", "").strip()
+    if title:
+        story.append(Paragraph(esc(title), styles["title"]))
     story.append(Spacer(1, 2 * mm))
 
     # Contact info
     story.extend(build_contact(data["contact"], styles))
 
     # Professional Summary
-    story.extend(section_header("Professional Summary", styles))
+    story.extend(section_header("Summary", styles))
     summary = esc(data.get("summary", "")).replace("\n", "<br/>")
     story.append(Paragraph(summary, styles["summary"]))
 
-    # Skills
-    story.extend(build_skills(data.get("skills", []), styles))
+    SECTION_BUILDERS = {
+        "skills":       lambda d, s, w: build_skills(d.get("skills", []), s, w),
+        "achievements": lambda d, s, w: build_achievements(d.get("achievements", []), s, w),
+        "experience":   lambda d, s, w: build_experience(d.get("experience", []), s, w),
+        "projects":     lambda d, s, w: build_projects(d.get("projects", []), s, w),
+        "education":    lambda d, s, w: build_education(d.get("education", []), s, w),
+        "interests":    lambda d, s, w: build_interests(d.get("interests", []), s, w) if d.get("interests") else [],
+    }
+    DEFAULT_SECTION_ORDER = ["skills", "achievements", "experience", "projects", "education", "interests"]
 
-    # Experience
-    story.extend(build_experience(data.get("experience", []), styles, content_width))
+    section_order = list(data.get("sectionOrder") or DEFAULT_SECTION_ORDER)
+    # Append any canonical keys missing from stored order
+    for key in DEFAULT_SECTION_ORDER:
+        if key not in section_order:
+            section_order.append(key)
 
-    # Projects
-    story.extend(build_projects(data.get("projects", []), styles))
-
-    # Education
-    story.extend(build_education(data.get("education", []), styles, content_width))
-
-    # Interests
-    interests = data.get("interests", [])
-    if interests:
-        story.extend(build_interests(interests, styles))
+    for key in section_order:
+        builder = SECTION_BUILDERS.get(key)
+        if builder:
+            story.extend(builder(data, styles, content_width))
 
     doc = BaseDocTemplate(
         output_path,
