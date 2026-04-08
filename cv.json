@@ -57,8 +57,8 @@
           "description": "Built data-intensive activity pages, advanced filtering systems, reporting modules, and core admin tools using Angular and Django, optimizing performance for large datasets. (Matific - Teacher Site)\nDeveloped serverless microservices with AWS Lambda and a Rust PoC for high-performance computation, reducing operational costs.\nIncreased unit test coverage to 90%+, enhancing reliability and regression safety.\nWorked with global cross-functional teams (Mobile, Unity, Content, ML/AI, Support) to resolve production issues and improve integrations.\nContributed to company-wide UI component migration, improving consistency and maintainability.\nDelivered an Accessibility-compliant product version under tight deadlines for European and North American markets.\nBuilt a RAG-based AI agent using LangChain to assist backend support teams in troubleshooting customer issues without requiring developer intervention.\nMigrated the frontend client application (internal) from Angular to React to improve performance and maintainability.",
           "period": {
             "end": {
-              "year": 2026,
-              "month": 4
+              "month": 4,
+              "year": 2026
             },
             "start": {
               "month": 1,
@@ -140,10 +140,10 @@
   ],
   "sectionOrder": [
     "skills",
-    "achievements",
     "experience",
     "projects",
     "education",
+    "achievements",
     "interests"
   ],
   "skills": [
