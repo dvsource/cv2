@@ -36,6 +36,7 @@ function normaliseCvData(raw: Record<string, unknown>): CvData {
       edu.period = { ...DEFAULT_PERIOD };
     }
   }
+  if (!d.pdfOptions) d.pdfOptions = {};
   return d;
 }
 

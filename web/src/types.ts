@@ -43,6 +43,25 @@ export interface Skill {
   items: string;
 }
 
+export interface PdfOptions {
+  // Layout (mm)
+  marginLR?: number;        // default 22
+  marginTop?: number;       // default 18
+  marginBottom?: number;    // default 18
+  sectionSpacing?: number;  // default 5.5 — space before each section header
+
+  // Font sizes (pt)
+  fontSizeName?: number;    // default 26 — name heading
+  fontSizeBody?: number;    // default 9.5 — body text, bullets, summary
+  fontSizeSection?: number; // default 9.5 — section header caps
+  fontSizeTitle?: number;   // default 10.5 — exp/edu/proj title lines
+
+  // Custom
+  mergeSummarySkills?: boolean;  // render skills immediately under summary, no Skills header
+  hiddenSections?: string[];     // section keys to skip entirely in PDF
+  hiddenTitles?: string[];       // section keys where the header title+line is suppressed
+}
+
 export interface CvData {
   contact: Contact;
   summary: string;
@@ -53,6 +72,7 @@ export interface CvData {
   education: Education[];
   interests: string[];
   sectionOrder?: string[];
+  pdfOptions?: PdfOptions;
 }
 
 export interface VersionSummary {
