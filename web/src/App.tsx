@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { CvData, VersionSummary, JobListItem, Period, PeriodDate } from "./types";
+import { JobPanel } from "./JobPanel";
 
 interface Toast {
   message: string;
@@ -577,6 +578,14 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen">
+      <JobPanel
+        open={panelOpen}
+        onClose={() => setPanelOpen(false)}
+        jobs={jobs}
+        activeJobId={activeJobId}
+        onSelectJob={switchToJob}
+        onJobsChanged={fetchJobs}
+      />
       {/* Panel toggle */}
       <button
         type="button"
