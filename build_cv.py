@@ -65,6 +65,31 @@ MARGIN_LR = 22 * mm
 MARGIN_TOP = 18 * mm
 MARGIN_BOTTOM = 18 * mm
 
+DEFAULT_PDF_OPTS: dict = {
+    "marginLR": 22,
+    "marginTop": 18,
+    "marginBottom": 18,
+    "sectionSpacing": 5.5,
+    "fontSizeName": 26,
+    "fontSizeBody": 9.5,
+    "fontSizeSection": 9.5,
+    "fontSizeTitle": 10.5,
+    "mergeSummarySkills": False,
+    "hiddenSections": [],
+    "hiddenTitles": [],
+}
+
+
+def _get_opts(data: dict) -> dict:
+    """Merge user pdfOptions over defaults. Returns a complete opts dict."""
+    opts = dict(DEFAULT_PDF_OPTS)
+    user = data.get("pdfOptions") or {}
+    for k, v in user.items():
+        if k in opts and v is not None:
+            opts[k] = v
+    return opts
+
+
 NBSP = "\xa0"
 
 
@@ -128,11 +153,16 @@ class SpacedText(Flowable):
         c.restoreState()
 
 
-def section_header(title: str, styles: dict) -> list:
-    """Section title with letter-spaced caps + thin horizontal line."""
+def section_header(title: str, key: str, styles: dict, opts: dict) -> list:
+    """Section title with letter-spaced caps + thin horizontal rule.
+    Returns [] if key is in opts['hiddenTitles'] (suppresses title + spacing).
+    """
+    if key in opts.get("hiddenTitles", []):
+        return []
     s = styles["section"]
+    spacing = opts.get("sectionSpacing", DEFAULT_PDF_OPTS["sectionSpacing"])
     return [
-        Spacer(1, 5.5 * mm),
+        Spacer(1, spacing * mm),
         SpacedText(title, s.fontName, s.fontSize, s.textColor),
         HRFlowable(
             width="100%",
@@ -147,122 +177,59 @@ def section_header(title: str, styles: dict) -> list:
 # ── Styles ─────────────────────────────────────────────────────
 
 
-def make_styles() -> dict:
-    """Create paragraph styles matching the CV design."""
+def make_styles(opts: dict) -> dict:
+    """Create paragraph styles using opts for font sizes."""
     s = {}
+    fn = opts["fontSizeName"]
+    fb = opts["fontSizeBody"]
+    fs = opts["fontSizeSection"]
+    ft = opts["fontSizeTitle"]
 
     s["name"] = ParagraphStyle(
-        "name",
-        fontName="NotoMono",
-        fontSize=26,
-        leading=30,
-        textColor=COLOR_DARK,
+        "name", fontName="NotoMono", fontSize=fn, leading=fn + 4, textColor=COLOR_DARK,
     )
-
     s["title"] = ParagraphStyle(
-        "title",
-        fontName="NotoSans",
-        fontSize=11,
-        leading=15,
-        textColor=COLOR_DARK,
+        "title", fontName="NotoSans", fontSize=11, leading=15, textColor=COLOR_DARK,
     )
-
     s["contact"] = ParagraphStyle(
-        "contact",
-        fontName="NotoSans",
-        fontSize=9,
-        leading=14,
-        textColor=COLOR_CONTACT,
-        leftIndent=0,
+        "contact", fontName="NotoSans", fontSize=9, leading=14,
+        textColor=COLOR_CONTACT, leftIndent=0,
     )
-
     s["section"] = ParagraphStyle(
-        "section",
-        fontName="NotoMono",
-        fontSize=9.5,
-        leading=13,
-        textColor=COLOR_DARK,
+        "section", fontName="NotoMono", fontSize=fs, leading=fs + 3.5, textColor=COLOR_DARK,
     )
-
     s["summary"] = ParagraphStyle(
-        "summary",
-        fontName="NotoSans",
-        fontSize=9.5,
-        leading=13.5,
-        textColor=COLOR_TEXT,
-        alignment=TA_JUSTIFY,
+        "summary", fontName="NotoSans", fontSize=fb, leading=fb + 4,
+        textColor=COLOR_TEXT, alignment=TA_JUSTIFY,
     )
-
     s["body"] = ParagraphStyle(
-        "body",
-        fontName="NotoSans",
-        fontSize=9.5,
-        leading=13.5,
-        textColor=COLOR_MUTED,
+        "body", fontName="NotoSans", fontSize=fb, leading=fb + 4, textColor=COLOR_MUTED,
     )
-
     s["exp_title"] = ParagraphStyle(
-        "exp_title",
-        fontName="NotoSans-Bold",
-        fontSize=10.5,
-        leading=14,
-        textColor=COLOR_TEXT,
+        "exp_title", fontName="NotoSans-Bold", fontSize=ft, leading=ft + 3.5, textColor=COLOR_TEXT,
     )
-
     s["exp_date"] = ParagraphStyle(
-        "exp_date",
-        fontName="NotoSans",
-        fontSize=9.5,
-        leading=14,
-        textColor=COLOR_MUTED,
-        alignment=TA_RIGHT,
+        "exp_date", fontName="NotoSans", fontSize=fb, leading=fb + 4.5,
+        textColor=COLOR_MUTED, alignment=TA_RIGHT,
     )
-
     s["bullet"] = ParagraphStyle(
-        "bullet",
-        fontName="NotoSans",
-        fontSize=9.5,
-        leading=13.5,
-        textColor=COLOR_MUTED,
-        leftIndent=12,
-        firstLineIndent=-8,
+        "bullet", fontName="NotoSans", fontSize=fb, leading=fb + 4,
+        textColor=COLOR_MUTED, leftIndent=12, firstLineIndent=-8,
     )
-
     s["proj_name"] = ParagraphStyle(
-        "proj_name",
-        fontName="NotoSans-Bold",
-        fontSize=10,
-        leading=14,
-        textColor=COLOR_TEXT,
+        "proj_name", fontName="NotoSans-Bold", fontSize=ft, leading=ft + 4, textColor=COLOR_TEXT,
     )
-
     s["proj_desc"] = ParagraphStyle(
-        "proj_desc",
-        fontName="NotoSans",
-        fontSize=9.5,
-        leading=13,
-        textColor=COLOR_MUTED,
-        leftIndent=12,
-        firstLineIndent=-8,
+        "proj_desc", fontName="NotoSans", fontSize=fb, leading=fb + 3.5,
+        textColor=COLOR_MUTED, leftIndent=12, firstLineIndent=-8,
     )
-
     s["edu_main"] = ParagraphStyle(
-        "edu_main",
-        fontName="NotoSans",
-        fontSize=10,
-        leading=14,
-        textColor=COLOR_TEXT,
+        "edu_main", fontName="NotoSans", fontSize=ft, leading=ft + 4, textColor=COLOR_TEXT,
     )
-
     s["edu_date"] = ParagraphStyle(
-        "edu_date",
-        fontName="NotoSans",
-        fontSize=10,
-        leading=14,
-        textColor=COLOR_MUTED,
-        alignment=TA_RIGHT,
+        "edu_date", fontName="NotoSans", fontSize=ft, leading=ft + 4,
+        textColor=COLOR_MUTED, alignment=TA_RIGHT,
     )
-
     return s
 
 
@@ -305,9 +272,11 @@ def build_contact(contact: dict, styles: dict, content_width: float = 0) -> list
     return items
 
 
-def build_skills(skills: list, styles: dict, content_width: float = 0) -> list:
+def build_skills(skills: list, styles: dict, content_width: float = 0, opts: dict = None) -> list:
     """Build the skills section."""
-    items = section_header("Skills", styles)
+    if opts is None:
+        opts = DEFAULT_PDF_OPTS
+    items = section_header("Skills", "skills", styles, opts)
 
     for skill in skills:
         label = esc(skill.get("label", ""))
@@ -320,11 +289,13 @@ def build_skills(skills: list, styles: dict, content_width: float = 0) -> list:
     return items
 
 
-def build_achievements(achievements: list, styles: dict, content_width: float = 0) -> list:
+def build_achievements(achievements: list, styles: dict, content_width: float = 0, opts: dict = None) -> list:
     """Build the achievements section — plain bullet list, no dates or labels."""
+    if opts is None:
+        opts = DEFAULT_PDF_OPTS
     if not achievements:
         return []
-    items = section_header("Achievements", styles)
+    items = section_header("Achievements", "achievements", styles, opts)
     for achievement in achievements:
         text = achievement.strip() if isinstance(achievement, str) else str(achievement)
         if text:
@@ -332,9 +303,11 @@ def build_achievements(achievements: list, styles: dict, content_width: float = 
     return items
 
 
-def build_experience(experience: list, styles: dict, content_width: float) -> list:
+def build_experience(experience: list, styles: dict, content_width: float, opts: dict = None) -> list:
     """Build the experience section."""
-    items = section_header("Experience", styles)
+    if opts is None:
+        opts = DEFAULT_PDF_OPTS
+    items = section_header("Experience", "experience", styles, opts)
 
     for exp in experience:
         company = esc(exp["company"])
@@ -383,9 +356,11 @@ def build_experience(experience: list, styles: dict, content_width: float) -> li
     return items
 
 
-def build_projects(projects: list, styles: dict, content_width: float = 0) -> list:
+def build_projects(projects: list, styles: dict, content_width: float = 0, opts: dict = None) -> list:
     """Build the projects section."""
-    items = section_header("Projects", styles)
+    if opts is None:
+        opts = DEFAULT_PDF_OPTS
+    items = section_header("Projects", "projects", styles, opts)
 
     for proj in projects:
         items.append(Paragraph(f"<b>{esc(proj['name'])}</b>", styles["proj_name"]))
@@ -402,9 +377,11 @@ def build_projects(projects: list, styles: dict, content_width: float = 0) -> li
     return items
 
 
-def build_education(education: list, styles: dict, content_width: float) -> list:
+def build_education(education: list, styles: dict, content_width: float, opts: dict = None) -> list:
     """Build the education section."""
-    items = section_header("Education", styles)
+    if opts is None:
+        opts = DEFAULT_PDF_OPTS
+    items = section_header("Education", "education", styles, opts)
 
     for edu in education:
         degree = esc(edu.get("degree", ""))
@@ -450,9 +427,11 @@ def build_education(education: list, styles: dict, content_width: float) -> list
     return items
 
 
-def build_interests(interests: list, styles: dict, content_width: float = 0) -> list:
+def build_interests(interests: list, styles: dict, content_width: float = 0, opts: dict = None) -> list:
     """Build the interests section."""
-    items = section_header("Interests", styles)
+    if opts is None:
+        opts = DEFAULT_PDF_OPTS
+    items = section_header("Interests", "interests", styles, opts)
 
     for interest in interests:
         text = interest.strip() if isinstance(interest, str) else str(interest)
@@ -467,42 +446,61 @@ def build_interests(interests: list, styles: dict, content_width: float = 0) -> 
 
 def build_pdf(data: dict, output_path: str):
     """Generate the CV PDF from structured data."""
-    styles = make_styles()
-    content_width = A4[0] - 2 * MARGIN_LR
+    opts = _get_opts(data)
+    styles = make_styles(opts)
+    margin_lr = opts["marginLR"] * mm
+    margin_top = opts["marginTop"] * mm
+    margin_bot = opts["marginBottom"] * mm
+    content_width = A4[0] - 2 * margin_lr
+    hidden = set(opts.get("hiddenSections", []))
     story = []
 
     # Name
     story.append(Paragraph(esc(data["contact"]["name"]), styles["name"]))
-    title = data["contact"].get("title", "").strip()
-    if title:
-        story.append(Paragraph(esc(title), styles["title"]))
+    title_text = data["contact"].get("title", "").strip()
+    if title_text:
+        story.append(Paragraph(esc(title_text), styles["title"]))
     story.append(Spacer(1, 2 * mm))
 
     # Contact info
     story.extend(build_contact(data["contact"], styles))
 
-    # Professional Summary
-    story.extend(section_header("Summary", styles))
-    summary = esc(data.get("summary", "")).replace("\n", "<br/>")
-    story.append(Paragraph(summary, styles["summary"]))
+    # Professional Summary (always first, pinned above section order)
+    if "summary" not in hidden:
+        story.extend(section_header("Summary", "summary", styles, opts))
+        summary = esc(data.get("summary", "")).replace("\n", "<br/>")
+        story.append(Paragraph(summary, styles["summary"]))
+
+    # If mergeSummarySkills: render skills content directly after summary (no Skills header)
+    skip_sections: set = set()
+    if opts.get("mergeSummarySkills") and "skills" not in hidden:
+        for skill in data.get("skills", []):
+            label = esc(skill.get("label", ""))
+            vals = skill.get("items", "")
+            if isinstance(vals, list):
+                vals = ", ".join(vals)
+            if label and vals:
+                story.append(Paragraph(f"<b>{label}:</b> {esc(vals)}", styles["body"]))
+        skip_sections.add("skills")
 
     SECTION_BUILDERS = {
-        "skills":       lambda d, s, w: build_skills(d.get("skills", []), s, w),
-        "achievements": lambda d, s, w: build_achievements(d.get("achievements", []), s, w),
-        "experience":   lambda d, s, w: build_experience(d.get("experience", []), s, w),
-        "projects":     lambda d, s, w: build_projects(d.get("projects", []), s, w),
-        "education":    lambda d, s, w: build_education(d.get("education", []), s, w),
-        "interests":    lambda d, s, w: build_interests(d.get("interests", []), s, w) if d.get("interests") else [],
+        "skills":       lambda d, s, w: build_skills(d.get("skills", []), s, w, opts),
+        "achievements": lambda d, s, w: build_achievements(d.get("achievements", []), s, w, opts),
+        "experience":   lambda d, s, w: build_experience(d.get("experience", []), s, w, opts),
+        "projects":     lambda d, s, w: build_projects(d.get("projects", []), s, w, opts),
+        "education":    lambda d, s, w: build_education(d.get("education", []), s, w, opts),
+        "interests":    lambda d, s, w: build_interests(d.get("interests", []), s, w, opts) if d.get("interests") else [],
     }
     DEFAULT_SECTION_ORDER = ["skills", "achievements", "experience", "projects", "education", "interests"]
 
     section_order = list(data.get("sectionOrder") or DEFAULT_SECTION_ORDER)
-    # Append any canonical keys missing from stored order
     for key in DEFAULT_SECTION_ORDER:
         if key not in section_order:
             section_order.append(key)
 
     for key in section_order:
+        if key in hidden or key in skip_sections:
+            continue
         builder = SECTION_BUILDERS.get(key)
         if builder:
             story.extend(builder(data, styles, content_width))
@@ -510,18 +508,18 @@ def build_pdf(data: dict, output_path: str):
     doc = BaseDocTemplate(
         output_path,
         pagesize=A4,
-        leftMargin=MARGIN_LR,
-        rightMargin=MARGIN_LR,
-        topMargin=MARGIN_TOP,
-        bottomMargin=MARGIN_BOTTOM,
+        leftMargin=margin_lr,
+        rightMargin=margin_lr,
+        topMargin=margin_top,
+        bottomMargin=margin_bot,
         title=f"CV - {data['contact']['name']}",
         author=data["contact"]["name"],
     )
     frame = Frame(
-        MARGIN_LR,
-        MARGIN_BOTTOM,
+        margin_lr,
+        margin_bot,
         content_width,
-        A4[1] - MARGIN_TOP - MARGIN_BOTTOM,
+        A4[1] - margin_top - margin_bot,
         leftPadding=0,
         rightPadding=0,
         topPadding=0,
