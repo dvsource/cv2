@@ -9,6 +9,7 @@ DB_PATH = os.environ.get("CV_DB_PATH", Path(__file__).parent / "cv_history.db")
 def _connect():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
     return conn
 
 
@@ -180,10 +181,19 @@ def get_job(job_id):
     }
 
 
+_ALLOWED_JOB_FIELDS = {
+    "company", "company_url", "role", "job_url",
+    "other_links", "description", "raw_content", "summary", "status",
+}
+
+
 def update_job(job_id, **fields):
     """Update any subset of job fields. Serialises other_links and summary if present."""
     if not fields:
-        return
+        return False
+    invalid = set(fields) - _ALLOWED_JOB_FIELDS
+    if invalid:
+        raise ValueError(f"Unknown job fields: {invalid}")
     if "other_links" in fields:
         fields["other_links"] = json.dumps(fields["other_links"])
     if "summary" in fields:
@@ -192,12 +202,13 @@ def update_job(job_id, **fields):
     values = list(fields.values())
     values.append(job_id)
     conn = _connect()
-    conn.execute(
+    cur = conn.execute(
         f"UPDATE jobs SET {set_clause}, updated_at = strftime('%Y-%m-%dT%H:%M:%SZ','now') WHERE id = ?",
         values,
     )
     conn.commit()
     conn.close()
+    return cur.rowcount > 0
 
 
 def delete_job(job_id):
