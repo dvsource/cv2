@@ -23,6 +23,31 @@ def init_db():
             source     TEXT NOT NULL DEFAULT 'manual'
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS jobs (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            company      TEXT NOT NULL DEFAULT '',
+            company_url  TEXT NOT NULL DEFAULT '',
+            role         TEXT NOT NULL DEFAULT '',
+            job_url      TEXT NOT NULL DEFAULT '',
+            other_links  TEXT NOT NULL DEFAULT '[]',
+            description  TEXT NOT NULL DEFAULT '',
+            raw_content  TEXT NOT NULL DEFAULT '',
+            summary      TEXT NOT NULL DEFAULT '{}',
+            status       TEXT NOT NULL DEFAULT 'active',
+            created_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+            updated_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now'))
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS job_cv_versions (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            job_id     INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+            data       TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+            source     TEXT NOT NULL DEFAULT 'manual'
+        )
+    """)
     conn.commit()
     conn.close()
 
@@ -88,3 +113,148 @@ def get_version(version_id):
             "source": row["source"],
         }
     return None
+
+
+# ── Jobs ──────────────────────────────────────────────────────
+
+
+def create_job(company="", company_url="", role="", job_url="",
+               other_links=None, description="", raw_content="", summary=None):
+    conn = _connect()
+    cur = conn.execute(
+        """INSERT INTO jobs
+           (company, company_url, role, job_url, other_links, description, raw_content, summary)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        (
+            company, company_url, role, job_url,
+            json.dumps(other_links or []),
+            description, raw_content,
+            json.dumps(summary or {}),
+        ),
+    )
+    job_id = cur.lastrowid
+    conn.commit()
+    conn.close()
+    return job_id
+
+
+def list_jobs():
+    conn = _connect()
+    rows = conn.execute(
+        "SELECT id, company, role, status, created_at, updated_at, summary FROM jobs ORDER BY id DESC"
+    ).fetchall()
+    conn.close()
+    return [
+        {
+            "id": r["id"],
+            "company": r["company"],
+            "role": r["role"],
+            "status": r["status"],
+            "created_at": r["created_at"],
+            "updated_at": r["updated_at"],
+            "summary": json.loads(r["summary"]),
+        }
+        for r in rows
+    ]
+
+
+def get_job(job_id):
+    conn = _connect()
+    row = conn.execute("SELECT * FROM jobs WHERE id = ?", (job_id,)).fetchone()
+    conn.close()
+    if not row:
+        return None
+    return {
+        "id": row["id"],
+        "company": row["company"],
+        "company_url": row["company_url"],
+        "role": row["role"],
+        "job_url": row["job_url"],
+        "other_links": json.loads(row["other_links"]),
+        "description": row["description"],
+        "raw_content": row["raw_content"],
+        "summary": json.loads(row["summary"]),
+        "status": row["status"],
+        "created_at": row["created_at"],
+        "updated_at": row["updated_at"],
+    }
+
+
+def update_job(job_id, **fields):
+    """Update any subset of job fields. Serialises other_links and summary if present."""
+    if not fields:
+        return
+    if "other_links" in fields:
+        fields["other_links"] = json.dumps(fields["other_links"])
+    if "summary" in fields:
+        fields["summary"] = json.dumps(fields["summary"])
+    set_clause = ", ".join(f"{k} = ?" for k in fields)
+    values = list(fields.values())
+    values.append(job_id)
+    conn = _connect()
+    conn.execute(
+        f"UPDATE jobs SET {set_clause}, updated_at = strftime('%Y-%m-%dT%H:%M:%SZ','now') WHERE id = ?",
+        values,
+    )
+    conn.commit()
+    conn.close()
+
+
+def delete_job(job_id):
+    conn = _connect()
+    conn.execute("DELETE FROM jobs WHERE id = ?", (job_id,))
+    conn.commit()
+    conn.close()
+
+
+# ── Job CV Versions ───────────────────────────────────────────
+
+
+def save_job_cv_version(job_id, data, source="manual"):
+    conn = _connect()
+    cur = conn.execute(
+        "INSERT INTO job_cv_versions (job_id, data, source) VALUES (?, ?, ?)",
+        (job_id, json.dumps(data, ensure_ascii=False), source),
+    )
+    version_id = cur.lastrowid
+    conn.commit()
+    conn.close()
+    return version_id
+
+
+def get_latest_job_cv(job_id):
+    conn = _connect()
+    row = conn.execute(
+        "SELECT data FROM job_cv_versions WHERE job_id = ? ORDER BY id DESC LIMIT 1",
+        (job_id,),
+    ).fetchone()
+    conn.close()
+    return json.loads(row["data"]) if row else None
+
+
+def list_job_cv_versions(job_id, limit=50):
+    conn = _connect()
+    rows = conn.execute(
+        "SELECT id, created_at, source FROM job_cv_versions WHERE job_id = ? ORDER BY id DESC LIMIT ?",
+        (job_id, limit),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_job_cv_version(version_id):
+    conn = _connect()
+    row = conn.execute(
+        "SELECT id, job_id, data, created_at, source FROM job_cv_versions WHERE id = ?",
+        (version_id,),
+    ).fetchone()
+    conn.close()
+    if not row:
+        return None
+    return {
+        "id": row["id"],
+        "job_id": row["job_id"],
+        "data": json.loads(row["data"]),
+        "created_at": row["created_at"],
+        "source": row["source"],
+    }
