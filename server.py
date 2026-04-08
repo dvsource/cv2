@@ -1,13 +1,22 @@
 import json
+import os
 import re
 import tempfile
 from pathlib import Path
+
+from dotenv import load_dotenv
+load_dotenv()
 
 from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
 
 from build_cv import build_pdf
-from db import init_db, seed_from_json, save_version, get_latest, list_versions, get_version
+from db import (
+    init_db, seed_from_json, save_version, get_latest, list_versions, get_version,
+    create_job, list_jobs, get_job, update_job, delete_job,
+    save_job_cv_version, get_latest_job_cv, list_job_cv_versions, get_job_cv_version,
+)
+from llm import extract_job_info, LLMError
 
 DIST_DIR = Path(__file__).parent / "web" / "dist"
 
@@ -140,6 +149,97 @@ def versions_get(vid):
     if v is None:
         return jsonify({"error": "not found"}), 404
     return jsonify(v)
+
+
+@app.get("/api/jobs")
+def jobs_list():
+    return jsonify(list_jobs())
+
+
+@app.post("/api/jobs")
+def jobs_create():
+    body = request.get_json()
+    mode = body.get("mode", "manual")  # "paste" or "manual"
+
+    extracted = {}
+    if mode == "paste":
+        raw_content = body.get("raw_content", "")
+        if raw_content.strip():
+            try:
+                extracted = extract_job_info(raw_content, fill_company_role=True)
+            except LLMError as e:
+                return jsonify({"error": f"LLM extraction failed: {e}"}), 502
+        company = extracted.get("company") or body.get("company", "")
+        role = extracted.get("role") or body.get("role", "")
+        description = extracted.get("description") or body.get("description", "")
+    else:
+        raw_content = ""
+        company = body.get("company", "")
+        role = body.get("role", "")
+        description = body.get("description", "")
+        if description.strip():
+            try:
+                extracted = extract_job_info(description, fill_company_role=False)
+            except LLMError as e:
+                return jsonify({"error": f"LLM extraction failed: {e}"}), 502
+
+    summary = {
+        "tech_skills": extracted.get("tech_skills", []),
+        "other_skills": extracted.get("other_skills", []),
+        "key_points": extracted.get("key_points", []),
+    }
+
+    job_id = create_job(
+        company=company,
+        company_url=body.get("company_url", ""),
+        role=role,
+        job_url=body.get("job_url", ""),
+        other_links=body.get("other_links", []),
+        description=description,
+        raw_content=raw_content,
+        summary=summary,
+    )
+    return jsonify({"ok": True, "job_id": job_id, "job": get_job(job_id)}), 201
+
+
+@app.get("/api/jobs/<int:jid>")
+def jobs_get(jid):
+    job = get_job(jid)
+    if job is None:
+        return jsonify({"error": "not found"}), 404
+    return jsonify(job)
+
+
+@app.put("/api/jobs/<int:jid>")
+def jobs_update(jid):
+    if get_job(jid) is None:
+        return jsonify({"error": "not found"}), 404
+    body = request.get_json()
+    allowed = {"company", "company_url", "role", "job_url", "other_links",
+               "description", "raw_content", "status"}
+    fields = {k: v for k, v in body.items() if k in allowed}
+
+    if body.get("re_extract") and fields.get("description", "").strip():
+        try:
+            extracted = extract_job_info(fields["description"], fill_company_role=False)
+            fields["summary"] = {
+                "tech_skills": extracted.get("tech_skills", []),
+                "other_skills": extracted.get("other_skills", []),
+                "key_points": extracted.get("key_points", []),
+            }
+        except LLMError as e:
+            return jsonify({"error": f"LLM extraction failed: {e}"}), 502
+
+    update_job(jid, **fields)
+    return jsonify({"ok": True, "job": get_job(jid)})
+
+
+@app.delete("/api/jobs/<int:jid>")
+def jobs_delete(jid):
+    if get_job(jid) is None:
+        return jsonify({"error": "not found"}), 404
+    delete_job(jid)
+    return jsonify({"ok": True})
 
 
 @app.route("/", defaults={"path": ""})
