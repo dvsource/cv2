@@ -1,4 +1,5 @@
 {
+  "achievements": [],
   "contact": {
     "email": "virajkaushalye1@gmail.com",
     "github": "github.com/dvsource",
@@ -17,7 +18,16 @@
         "Statistics"
       ],
       "institution": "University of Sri Jayewardenepura",
-      "period": "2015 - 2018"
+      "period": {
+        "end": {
+          "month": 12,
+          "year": 2018
+        },
+        "start": {
+          "month": 1,
+          "year": 2015
+        }
+      }
     },
     {
       "focus": [
@@ -26,16 +36,35 @@
         "Chemistry"
       ],
       "institution": "D. S. Senanayake College",
-      "period": "2006 - 2014"
+      "period": {
+        "end": {
+          "month": 12,
+          "year": 2014
+        },
+        "start": {
+          "month": 1,
+          "year": 2006
+        }
+      }
     }
   ],
   "experience": [
     {
       "company": "Matific - Sri Lanka",
+      "pageBreakAfter": false,
       "roles": [
         {
           "description": "Built data-intensive activity pages, advanced filtering systems, reporting modules, and core admin tools using Angular and Django, optimizing performance for large datasets. (Matific - Teacher Site)\nDeveloped serverless microservices with AWS Lambda and a Rust PoC for high-performance computation, reducing operational costs.\nIncreased unit test coverage to 90%+, enhancing reliability and regression safety.\nWorked with global cross-functional teams (Mobile, Unity, Content, ML/AI, Support) to resolve production issues and improve integrations.\nContributed to company-wide UI component migration, improving consistency and maintainability.\nDelivered an Accessibility-compliant product version under tight deadlines for European and North American markets.\nBuilt a RAG-based AI agent using LangChain to assist backend support teams in troubleshooting customer issues without requiring developer intervention.\nMigrated the frontend client application (internal) from Angular to React to improve performance and maintainability.",
-          "period": "2022 - 2026",
+          "period": {
+            "end": {
+              "year": 2026,
+              "month": 4
+            },
+            "start": {
+              "month": 1,
+              "year": 2022
+            }
+          },
           "title": "Senior Software Engineer"
         }
       ]
@@ -46,18 +75,45 @@
         {
           "description": "Developed and maintained core functionality for the company’s B2B web platform, prioritizing performance, reliability, and usability.\nBuilt Angular-based WordPress widgets, migrated components to Web Elements, and deployed scalable Docker-Kubernetes infrastructure with NGINX.\nMentored junior developers, conducted productivity workshops, and hosted ongoing developer forums to enhance team learning.",
           "pageBreakAfter": true,
-          "period": "2020 - 2022",
+          "period": {
+            "end": {
+              "month": 12,
+              "year": 2022
+            },
+            "start": {
+              "month": 1,
+              "year": 2020
+            }
+          },
           "title": "Senior Software Engineer"
         },
         {
           "description": "Migrated Angular 7 applications to Angular 9; contributed to front-end modules for B2B travel functionalities (Supplier, Insurance, Generic).\nDeveloped internal project management tools integrating Jira and GitLab APIs; built reporting modules for management insights.\nImproved B2C travel platform (FlyDubai) booking flows and UI performance.",
           "pageBreakAfter": false,
-          "period": "2019 - 2020",
+          "period": {
+            "end": {
+              "month": 12,
+              "year": 2020
+            },
+            "start": {
+              "month": 1,
+              "year": 2019
+            }
+          },
           "title": "Software Engineer"
         },
         {
           "description": "Developed a full-stack Leave Management system for the enterprise social network (Kriyo.net).\nContributed to chatbot features, reporting modules, bug fixes, and overall application improvements.",
-          "period": "2019",
+          "period": {
+            "end": {
+              "month": 12,
+              "year": 2019
+            },
+            "start": {
+              "month": 1,
+              "year": 2019
+            }
+          },
           "title": "Trainee Software Engineer"
         }
       ]
@@ -81,6 +137,14 @@
       "description": "Final-year university project; an augmented reality application\nThe application was designed to help visitors navigate large buildings by providing real-time, AR-based\nindoor guidance and directional assistance.\nBuilt with Unity and iOS ARKit.",
       "name": "AR-based Indoor Navigation Guide"
     }
+  ],
+  "sectionOrder": [
+    "skills",
+    "achievements",
+    "experience",
+    "projects",
+    "education",
+    "interests"
   ],
   "skills": [
     {
@@ -112,7 +176,5 @@
       "label": "Other"
     }
   ],
-  "summary": "Software developer focused on building clean, maintainable, and scalable systems across the full stack. Strong interest in distributed systems, system architecture, and designing reliable software across frontend and backend systems. Passionate about exploring open-source projects to understand engineering patterns and architectural trade-offs.\nCommitted to efficiency, reliability, and automation, with a strong focus on improving developer productivity and long-term maintainability. Hands-on experience with modern AI technologies, including agent-based systems and MCP/RAG implementations, applying them to rapidly evolving development workflows.",
-  "achievements": [],
-  "sectionOrder": ["skills", "achievements", "experience", "projects", "education", "interests"]
+  "summary": "Software developer focused on building clean, maintainable, and scalable systems across the full stack. Strong interest in distributed systems, system architecture, and designing reliable software across frontend and backend systems. Passionate about exploring open-source projects to understand engineering patterns and architectural trade-offs.\nCommitted to efficiency, reliability, and automation, with a strong focus on improving developer productivity and long-term maintainability. Hands-on experience with modern AI technologies, including agent-based systems and MCP/RAG implementations, applying them to rapidly evolving development workflows."
 }
