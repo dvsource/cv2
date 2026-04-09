@@ -120,6 +120,9 @@
     }
   ],
   "interests": [],
+  "pdfOptions": {
+    "pageBreaks": {}
+  },
   "projects": [
     {
       "description": "An R&D project I developed at Matific. It is an AI-powered assistant designed to help support staff understand the logic behind product functionalities without needing to consult developers, especially when handling new or complex customer issues.\n\nBuilt using LangChain, a vector database, text embeddings, and OpenAI LLMs.",

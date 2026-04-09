@@ -70,9 +70,12 @@ DEFAULT_PDF_OPTS: dict = {
     "fontSizeBody": 9.5,
     "fontSizeSection": 9.5,
     "fontSizeTitle": 10.5,
+    "fontSizeContactTitle": 11,
     "mergeSummarySkills": False,
+    "mergeSummarySkillsSpacing": 3,
     "hiddenSections": [],
     "hiddenTitles": [],
+    "pageBreaks": {},
 }
 
 
@@ -100,24 +103,25 @@ def esc(text: str) -> str:
 MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 
 
-def format_period(period) -> str:
+def format_period(period, opts: dict = None) -> str:
     """Format a period dict as 'Mar 2022 – Dec 2023' or 'Mar 2022 – Present'.
-    Falls back to str(period) for legacy string values."""
+    Falls back to str(period) for legacy string values.
+    A month value of 0 means 'no month' — only the year is shown."""
     if isinstance(period, str):
         return period
     if not isinstance(period, dict):
         return ""
     start = period.get("start", {})
     end = period.get("end", {})
-    sm = max(1, min(int(start.get("month", 1)), 12))
+    sm = int(start.get("month", 1))
     sy = start.get("year", "")
-    start_str = f"{MONTH_ABBR[sm - 1]} {sy}" if sy else ""
+    start_str = (f"{MONTH_ABBR[max(1, sm) - 1]} {sy}" if sm > 0 else str(sy)) if sy else ""
     if end == "present":
         end_str = "Present"
     elif isinstance(end, dict):
-        em = max(1, min(int(end.get("month", 12)), 12))
+        em = int(end.get("month", 12))
         ey = end.get("year", "")
-        end_str = f"{MONTH_ABBR[em - 1]} {ey}" if ey else ""
+        end_str = (f"{MONTH_ABBR[max(1, em) - 1]} {ey}" if em > 0 else str(ey)) if ey else ""
     else:
         end_str = ""
     return f"{start_str} \u2013 {end_str}" if end_str else start_str
@@ -165,7 +169,7 @@ def section_header(title: str, key: str, styles: dict, opts: dict) -> list:
             thickness=0.5,
             color=COLOR_LINE,
             spaceBefore=1.5 * mm,
-            spaceAfter=3 * mm,
+            spaceAfter=1 * mm,
         ),
     ]
 
@@ -184,8 +188,9 @@ def make_styles(opts: dict) -> dict:
     s["name"] = ParagraphStyle(
         "name", fontName="NotoMono", fontSize=fn, leading=fn + 4, textColor=COLOR_DARK,
     )
+    fct = opts["fontSizeContactTitle"]
     s["title"] = ParagraphStyle(
-        "title", fontName="NotoSans", fontSize=11, leading=15, textColor=COLOR_DARK,
+        "title", fontName="NotoSans", fontSize=fct, leading=fct + 4, textColor=COLOR_DARK,
     )
     s["contact"] = ParagraphStyle(
         "contact", fontName="NotoSans", fontSize=9, leading=14,
@@ -205,7 +210,7 @@ def make_styles(opts: dict) -> dict:
         "exp_title", fontName="NotoSans-Bold", fontSize=ft, leading=ft + 3.5, textColor=COLOR_TEXT,
     )
     s["exp_date"] = ParagraphStyle(
-        "exp_date", fontName="NotoSans", fontSize=fb, leading=fb + 4.5,
+        "exp_date", fontName="NotoSans-Bold", fontSize=fb, leading=fb + 4.5,
         textColor=COLOR_MUTED, alignment=TA_RIGHT,
     )
     s["bullet"] = ParagraphStyle(
@@ -223,7 +228,7 @@ def make_styles(opts: dict) -> dict:
         "edu_main", fontName="NotoSans", fontSize=ft, leading=ft + 4, textColor=COLOR_TEXT,
     )
     s["edu_date"] = ParagraphStyle(
-        "edu_date", fontName="NotoSans", fontSize=ft, leading=ft + 4,
+        "edu_date", fontName="NotoSans-Bold", fontSize=ft, leading=ft + 4,
         textColor=COLOR_MUTED, alignment=TA_RIGHT,
     )
     return s
@@ -281,6 +286,8 @@ def build_skills(skills: list, styles: dict, content_width: float = 0, opts: dic
             vals = ", ".join(vals)
         if label and vals:
             items.append(Paragraph(f"<b>{label}:</b> {esc(vals)}", styles["body"]))
+        if skill.get("pageBreakAfter"):
+            items.append(PageBreak())
 
     return items
 
@@ -292,10 +299,13 @@ def build_achievements(achievements: list, styles: dict, content_width: float = 
     if not achievements:
         return []
     items = section_header("Achievements", "achievements", styles, opts)
-    for achievement in achievements:
+    breaks = set(opts.get("pageBreaks", {}).get("achievements", []))
+    for i, achievement in enumerate(achievements):
         text = achievement.strip() if isinstance(achievement, str) else str(achievement)
         if text:
             items.append(Paragraph(f"\xb7{NBSP * 2}{esc(text)}", styles["bullet"]))
+        if i in breaks:
+            items.append(PageBreak())
     return items
 
 
@@ -309,7 +319,7 @@ def build_experience(experience: list, styles: dict, content_width: float, opts:
         company = esc(exp["company"])
         for role in exp.get("roles", []):
             title = esc(role["title"])
-            period = esc(format_period(role.get("period", {})))
+            period = esc(format_period(role.get("period", {}), opts))
 
             title_p = Paragraph(f"<b>{company} \u2014 {title}</b>", styles["exp_title"])
             date_p = Paragraph(period, styles["exp_date"])
@@ -382,7 +392,7 @@ def build_education(education: list, styles: dict, content_width: float, opts: d
     for edu in education:
         degree = esc(edu.get("degree", ""))
         institution = esc(edu["institution"])
-        period = esc(format_period(edu.get("period", {})))
+        period = esc(format_period(edu.get("period", {}), opts))
         focus = edu.get("focus", [])
 
         if degree:
@@ -429,10 +439,13 @@ def build_interests(interests: list, styles: dict, content_width: float = 0, opt
         opts = DEFAULT_PDF_OPTS
     items = section_header("Interests", "interests", styles, opts)
 
-    for interest in interests:
+    breaks = set(opts.get("pageBreaks", {}).get("interests", []))
+    for i, interest in enumerate(interests):
         text = interest.strip() if isinstance(interest, str) else str(interest)
         if text:
             items.append(Paragraph(f"\xb7{NBSP * 2}{esc(text)}", styles["bullet"]))
+        if i in breaks:
+            items.append(PageBreak())
 
     return items
 
@@ -460,6 +473,13 @@ def build_pdf(data: dict, output_path: str):
 
     # Contact info
     story.extend(build_contact(data["contact"], styles))
+    story.append(HRFlowable(
+        width="100%",
+        thickness=1,
+        color=COLOR_LINE,
+        spaceBefore=2 * mm,
+        spaceAfter=1 * mm,
+    ))
 
     # Professional Summary (always first, pinned above section order)
     if "summary" not in hidden:
@@ -470,6 +490,8 @@ def build_pdf(data: dict, output_path: str):
     # If mergeSummarySkills: render skills content directly after summary (no Skills header)
     skip_sections: set = set()
     if opts.get("mergeSummarySkills") and "skills" not in hidden:
+        spacing = opts.get("mergeSummarySkillsSpacing", 3)
+        story.append(Spacer(1, spacing * mm))
         for skill in data.get("skills", []):
             label = esc(skill.get("label", ""))
             vals = skill.get("items", "")
@@ -477,6 +499,8 @@ def build_pdf(data: dict, output_path: str):
                 vals = ", ".join(vals)
             if label and vals:
                 story.append(Paragraph(f"<b>{label}:</b> {esc(vals)}", styles["body"]))
+            if skill.get("pageBreakAfter"):
+                story.append(PageBreak())
         skip_sections.add("skills")
 
     SECTION_BUILDERS = {

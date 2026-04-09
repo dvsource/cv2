@@ -38,6 +38,7 @@ function normaliseCvData(raw: Record<string, unknown>): CvData {
     }
   }
   if (!d.pdfOptions) d.pdfOptions = {};
+  if (!d.pdfOptions.pageBreaks) d.pdfOptions.pageBreaks = {};
   return d;
 }
 
@@ -224,6 +225,7 @@ function PeriodPicker({ period, onChange }: { period: Period; onChange: (p: Peri
             onChange({ ...period, start: { ...period.start, month: +e.target.value } })
           }
         >
+          <option value={0}>—</option>
           {MONTH_NAMES.map((m, i) => (
             <option key={i} value={i + 1}>{m}</option>
           ))}
@@ -244,12 +246,13 @@ function PeriodPicker({ period, onChange }: { period: Period; onChange: (p: Peri
         <span className="text-xs text-gray-500 w-8 shrink-0">To</span>
         <select
           className={inputClasses + " py-1.5 pr-1 text-sm"}
-          value={endDate?.month ?? 12}
+          value={endDate?.month ?? 0}
           disabled={isPresent}
           onChange={(e) =>
             onChange({ ...period, end: { year: endDate?.year ?? new Date().getFullYear(), month: +e.target.value } })
           }
         >
+          <option value={0}>—</option>
           {MONTH_NAMES.map((m, i) => (
             <option key={i} value={i + 1}>{m}</option>
           ))}
@@ -275,8 +278,7 @@ function PeriodPicker({ period, onChange }: { period: Period; onChange: (p: Peri
               if (e.target.checked) {
                 onChange({ ...period, end: "present" });
               } else {
-                const now = new Date();
-                onChange({ ...period, end: { year: now.getFullYear(), month: now.getMonth() + 1 } });
+                onChange({ ...period, end: { year: new Date().getFullYear(), month: 0 } });
               }
             }}
           />

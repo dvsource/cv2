@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import type { CvData, PdfOptions } from "./types";
+import type { CvData, PdfOptions, PdfPageBreaks } from "./types";
 
 // ── Defaults (must mirror DEFAULT_PDF_OPTS in build_cv.py) ────
 
@@ -9,12 +9,15 @@ const DEFAULTS: Required<PdfOptions> = {
   marginBottom: 18,
   sectionSpacing: 5.5,
   fontSizeName: 26,
+  fontSizeContactTitle: 11,
   fontSizeBody: 9.5,
   fontSizeSection: 9.5,
   fontSizeTitle: 10.5,
   mergeSummarySkills: false,
+  mergeSummarySkillsSpacing: 3,
   hiddenSections: [],
   hiddenTitles: [],
+  pageBreaks: {},
 };
 
 const SECTION_LABELS: Record<string, string> = {
@@ -139,29 +142,20 @@ export function OptionsPanel({ open, onClose, data, update }: OptionsPanelProps)
     dragSrcRef.current = null;
   }
 
-  // Collect page break items (company-level for experience, item-level for projects/education)
-  const pageBreakItems: Array<{ label: string; checked: boolean; set: (v: boolean) => void }> = [];
-  data.experience.forEach((exp, ei) => {
-    pageBreakItems.push({
-      label: `After ${exp.company || "Company " + (ei + 1)} (experience)`,
-      checked: !!exp.pageBreakAfter,
-      set: (v) => update((d) => { d.experience[ei].pageBreakAfter = v; }),
+  function setPageBreak(section: keyof PdfPageBreaks, index: number, on: boolean) {
+    update((d) => {
+      if (!d.pdfOptions) d.pdfOptions = {};
+      if (!d.pdfOptions.pageBreaks) d.pdfOptions.pageBreaks = {};
+      const current: number[] = d.pdfOptions.pageBreaks[section] ?? [];
+      d.pdfOptions.pageBreaks[section] = on
+        ? [...current.filter((i) => i !== index), index]
+        : current.filter((i) => i !== index);
     });
-  });
-  data.projects.forEach((proj, pi) => {
-    pageBreakItems.push({
-      label: `After project: ${proj.name || "Project " + (pi + 1)}`,
-      checked: !!proj.pageBreakAfter,
-      set: (v) => update((d) => { d.projects[pi].pageBreakAfter = v; }),
-    });
-  });
-  data.education.forEach((edu, ei) => {
-    pageBreakItems.push({
-      label: `After ${edu.institution || "Education " + (ei + 1)}`,
-      checked: !!edu.pageBreakAfter,
-      set: (v) => update((d) => { d.education[ei].pageBreakAfter = v; }),
-    });
-  });
+  }
+
+  function hasPageBreak(section: keyof PdfPageBreaks, index: number): boolean {
+    return (opts.pageBreaks?.[section] ?? []).includes(index);
+  }
 
   return (
     <>
@@ -211,6 +205,7 @@ export function OptionsPanel({ open, onClose, data, update }: OptionsPanelProps)
 
           <SubSection title="Font Sizes">
             <NumInput label="Name" value={opts.fontSizeName} defaultVal={DEFAULTS.fontSizeName} min={16} max={40} step={0.5} unit="pt" onChange={(v) => setOpt("fontSizeName", v)} />
+            <NumInput label="Title / role" value={opts.fontSizeContactTitle} defaultVal={DEFAULTS.fontSizeContactTitle} min={6} max={20} step={0.5} unit="pt" onChange={(v) => setOpt("fontSizeContactTitle", v)} />
             <NumInput label="Body / bullets" value={opts.fontSizeBody} defaultVal={DEFAULTS.fontSizeBody} min={6} max={14} step={0.5} unit="pt" onChange={(v) => setOpt("fontSizeBody", v)} />
             <NumInput label="Section header" value={opts.fontSizeSection} defaultVal={DEFAULTS.fontSizeSection} min={6} max={14} step={0.5} unit="pt" onChange={(v) => setOpt("fontSizeSection", v)} />
             <NumInput label="Item title" value={opts.fontSizeTitle} defaultVal={DEFAULTS.fontSizeTitle} min={6} max={16} step={0.5} unit="pt" onChange={(v) => setOpt("fontSizeTitle", v)} />
@@ -273,23 +268,134 @@ export function OptionsPanel({ open, onClose, data, update }: OptionsPanelProps)
               <span className="text-sm text-gray-700">Merge Summary &amp; Skills</span>
             </label>
             <p className="text-xs text-gray-400 ml-5">Skills render directly under Summary with no Skills header.</p>
+            {opts.mergeSummarySkills && (
+              <div className="ml-5">
+                <NumInput
+                  label="Summary→Skills gap"
+                  value={opts.mergeSummarySkillsSpacing}
+                  defaultVal={DEFAULTS.mergeSummarySkillsSpacing}
+                  min={0}
+                  max={20}
+                  step={0.5}
+                  unit="mm"
+                  onChange={(v) => setOpt("mergeSummarySkillsSpacing", v)}
+                />
+              </div>
+            )}
           </SubSection>
 
           <SubSection title="Page Breaks">
-            {pageBreakItems.length === 0 ? (
-              <p className="text-xs text-gray-400">No experience, project or education items yet.</p>
-            ) : (
-              pageBreakItems.map((item, i) => (
-                <label key={i} className="flex items-center gap-2 cursor-pointer select-none py-0.5">
-                  <input
-                    type="checkbox"
-                    className="accent-[#1b2a4a]"
-                    checked={item.checked}
-                    onChange={(e) => item.set(e.target.checked)}
-                  />
-                  <span className="text-sm text-gray-700 leading-tight">{item.label}</span>
-                </label>
-              ))
+            <p className="text-xs text-gray-400 mb-1">Insert a page break after the selected item.</p>
+
+            {/* Skills */}
+            {data.skills.length > 0 && (
+              <div className="mb-2">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Skills</p>
+                {data.skills.map((skill, si) => (
+                  <label key={si} className="flex items-center gap-2 cursor-pointer select-none py-0.5 pl-2">
+                    <input type="checkbox" className="accent-[#1b2a4a]"
+                      checked={!!skill.pageBreakAfter}
+                      onChange={(e) => update((d) => { d.skills[si].pageBreakAfter = e.target.checked; })}
+                    />
+                    <span className="text-sm text-gray-700 leading-tight">After: {skill.label || `Skill ${si + 1}`}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {/* Achievements */}
+            {(data.achievements ?? []).length > 0 && (
+              <div className="mb-2">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Achievements</p>
+                {(data.achievements ?? []).map((ach, ai) => (
+                  <label key={ai} className="flex items-center gap-2 cursor-pointer select-none py-0.5 pl-2">
+                    <input type="checkbox" className="accent-[#1b2a4a]"
+                      checked={hasPageBreak("achievements", ai)}
+                      onChange={(e) => setPageBreak("achievements", ai, e.target.checked)}
+                    />
+                    <span className="text-sm text-gray-700 leading-tight truncate max-w-[240px]" title={ach}>
+                      After: {ach.length > 50 ? ach.slice(0, 50) + "…" : ach}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {/* Experience */}
+            {data.experience.length > 0 && (
+              <div className="mb-2">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Experience</p>
+                {data.experience.map((exp, ei) => (
+                  <div key={ei} className="mb-1">
+                    {exp.roles.map((role, ri) => (
+                      <label key={ri} className="flex items-center gap-2 cursor-pointer select-none py-0.5 pl-2">
+                        <input type="checkbox" className="accent-[#1b2a4a]"
+                          checked={!!role.pageBreakAfter}
+                          onChange={(e) => update((d) => { d.experience[ei].roles[ri].pageBreakAfter = e.target.checked; })}
+                        />
+                        <span className="text-sm text-gray-700 leading-tight">After: {exp.company} — {role.title}</span>
+                      </label>
+                    ))}
+                    <label className="flex items-center gap-2 cursor-pointer select-none py-0.5 pl-2">
+                      <input type="checkbox" className="accent-[#1b2a4a]"
+                        checked={!!exp.pageBreakAfter}
+                        onChange={(e) => update((d) => { d.experience[ei].pageBreakAfter = e.target.checked; })}
+                      />
+                      <span className="text-sm text-gray-500 leading-tight italic">After all of {exp.company}</span>
+                    </label>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Projects */}
+            {data.projects.length > 0 && (
+              <div className="mb-2">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Projects</p>
+                {data.projects.map((proj, pi) => (
+                  <label key={pi} className="flex items-center gap-2 cursor-pointer select-none py-0.5 pl-2">
+                    <input type="checkbox" className="accent-[#1b2a4a]"
+                      checked={!!proj.pageBreakAfter}
+                      onChange={(e) => update((d) => { d.projects[pi].pageBreakAfter = e.target.checked; })}
+                    />
+                    <span className="text-sm text-gray-700 leading-tight">After: {proj.name || `Project ${pi + 1}`}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {/* Education */}
+            {data.education.length > 0 && (
+              <div className="mb-2">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Education</p>
+                {data.education.map((edu, ei) => (
+                  <label key={ei} className="flex items-center gap-2 cursor-pointer select-none py-0.5 pl-2">
+                    <input type="checkbox" className="accent-[#1b2a4a]"
+                      checked={!!edu.pageBreakAfter}
+                      onChange={(e) => update((d) => { d.education[ei].pageBreakAfter = e.target.checked; })}
+                    />
+                    <span className="text-sm text-gray-700 leading-tight">After: {edu.institution || `Education ${ei + 1}`}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+
+            {/* Interests */}
+            {(data.interests ?? []).length > 0 && (
+              <div className="mb-2">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Interests</p>
+                {(data.interests ?? []).map((interest, ii) => (
+                  <label key={ii} className="flex items-center gap-2 cursor-pointer select-none py-0.5 pl-2">
+                    <input type="checkbox" className="accent-[#1b2a4a]"
+                      checked={hasPageBreak("interests", ii)}
+                      onChange={(e) => setPageBreak("interests", ii, e.target.checked)}
+                    />
+                    <span className="text-sm text-gray-700 leading-tight truncate max-w-[240px]" title={interest}>
+                      After: {interest.length > 50 ? interest.slice(0, 50) + "…" : interest}
+                    </span>
+                  </label>
+                ))}
+              </div>
             )}
           </SubSection>
 

@@ -16,6 +16,7 @@ export interface Role {
   title: string;
   period: Period;
   description: string;
+  pageBreakAfter?: boolean;
 }
 
 export interface Experience {
@@ -41,6 +42,12 @@ export interface Education {
 export interface Skill {
   label: string;
   items: string;
+  pageBreakAfter?: boolean;
+}
+
+export interface PdfPageBreaks {
+  achievements?: number[];  // indices after which to insert PageBreak
+  interests?: number[];     // indices after which to insert PageBreak
 }
 
 export interface PdfOptions {
@@ -51,15 +58,20 @@ export interface PdfOptions {
   sectionSpacing?: number;  // default 5.5 — space before each section header
 
   // Font sizes (pt)
-  fontSizeName?: number;    // default 26 — name heading
-  fontSizeBody?: number;    // default 9.5 — body text, bullets, summary
-  fontSizeSection?: number; // default 9.5 — section header caps
-  fontSizeTitle?: number;   // default 10.5 — exp/edu/proj title lines
+  fontSizeName?: number;          // default 26 — name heading
+  fontSizeContactTitle?: number;  // default 11 — contact title/role line
+  fontSizeBody?: number;          // default 9.5 — body text, bullets, summary
+  fontSizeSection?: number;       // default 9.5 — section header caps
+  fontSizeTitle?: number;         // default 10.5 — exp/edu/proj title lines
 
   // Custom
-  mergeSummarySkills?: boolean;  // render skills immediately under summary, no Skills header
+  mergeSummarySkills?: boolean;       // render skills immediately under summary, no Skills header
+  mergeSummarySkillsSpacing?: number; // default 3 — gap (mm) between summary text and skills
   hiddenSections?: string[];     // section keys to skip entirely in PDF
   hiddenTitles?: string[];       // section keys where the header title+line is suppressed
+
+  // Index-based page breaks for string[] sections
+  pageBreaks?: PdfPageBreaks;
 }
 
 export interface CvData {
