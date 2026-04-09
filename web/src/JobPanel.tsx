@@ -19,6 +19,15 @@ const STATUS_COLORS: Record<JobStatus, string> = {
   offered: "bg-green-100 text-green-700",
 };
 
+// Colors for job icons in the collapsed icon rail
+const ICON_COLORS: Record<JobStatus, string> = {
+  active: "bg-gray-400 text-white",
+  applied: "bg-blue-500 text-white",
+  interview: "bg-yellow-400 text-gray-900",
+  rejected: "bg-red-400 text-white",
+  offered: "bg-green-500 text-white",
+};
+
 // ── Summary Card ───────────────────────────────────────────────
 
 function SummaryCard({ summary }: { summary: JobSummary }) {
@@ -311,10 +320,10 @@ function JobDetailView({
         const { job: updated } = await res.json();
         onJobUpdated(updated);
       } else {
-        setStatus(job.status); // rollback to prop value on failure
+        setStatus(job.status);
       }
     } catch {
-      setStatus(job.status); // rollback to prop value on network error
+      setStatus(job.status);
     } finally {
       setSaving(false);
     }
@@ -322,7 +331,6 @@ function JobDetailView({
 
   return (
     <div className="p-4 space-y-4">
-      {/* Activate button */}
       {!active ? (
         <button
           type="button"
@@ -337,10 +345,8 @@ function JobDetailView({
         </div>
       )}
 
-      {/* Summary */}
       <SummaryCard summary={job.summary} />
 
-      {/* Status */}
       <div>
         <div className="text-xs font-medium text-gray-600 mb-1.5">Application Status</div>
         <div className="flex flex-wrap gap-1.5">
@@ -362,7 +368,6 @@ function JobDetailView({
         </div>
       </div>
 
-      {/* Job info */}
       <div className="space-y-2">
         <div className="text-xs font-medium text-gray-600">Job Info</div>
         {job.company && (
@@ -410,14 +415,14 @@ function JobDetailView({
 
 export function JobPanel({
   open,
-  onClose,
+  onToggle,
   jobs,
   activeJobId,
   onSelectJob,
   onJobsChanged,
 }: {
   open: boolean;
-  onClose: () => void;
+  onToggle: () => void;
   jobs: JobListItem[];
   activeJobId: number | null;
   onSelectJob: (id: number | null) => void;
@@ -429,7 +434,7 @@ export function JobPanel({
   const handleDelete = useCallback(async (jobId: number) => {
     if (!confirm("Delete this job and all its CV versions?")) return;
     const res = await fetch(`/api/jobs/${jobId}`, { method: "DELETE" });
-    if (!res.ok) return; // server rejected - don't update local state
+    if (!res.ok) return;
     if (activeJobId === jobId) onSelectJob(null);
     onJobsChanged();
     setView("list");
@@ -450,124 +455,184 @@ export function JobPanel({
     setView("detail");
   }, [onJobsChanged]);
 
-  return (
-    <>
-      {/* Backdrop */}
-      <div
-        className={`fixed inset-0 z-30 bg-black/20 backdrop-blur-[1px] transition-opacity duration-200 ${
-          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={onClose}
-      />
+  // ── Collapsed icon rail ──────────────────────────────────────
 
-      {/* Panel */}
-      <div
-        className={`fixed left-0 top-0 h-full w-80 z-40 bg-white shadow-2xl flex flex-col overflow-hidden transition-transform duration-200 ease-out ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 shrink-0">
-          <div className="flex items-center gap-2">
-            {view !== "list" && (
-              <button
-                type="button"
-                onClick={() => { setView("list"); setSelectedJob(null); }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-            )}
-            <h2 className="font-semibold text-gray-800 text-sm">
-              {view === "list" ? "Jobs" : view === "create" ? "New Job" : selectedJob?.company || "Job Detail"}
-            </h2>
-          </div>
+  if (!open) {
+    return (
+      <div className="hidden lg:flex flex-col w-12 shrink-0 bg-[#1b2a4a] h-full">
+        {/* Expand toggle */}
+        <button
+          type="button"
+          onClick={onToggle}
+          className="h-12 flex items-center justify-center w-full text-white/50 hover:text-white transition-colors border-b border-white/10 shrink-0"
+          title="Expand jobs panel"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        {/* Icons */}
+        <div className="flex flex-col items-center gap-1 pt-2 px-1.5 flex-1 overflow-y-auto">
+          {/* General CV */}
           <button
             type="button"
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            onClick={() => onSelectJob(null)}
+            title="General CV"
+            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+              activeJobId === null
+                ? "bg-white text-[#1b2a4a] shadow-sm"
+                : "bg-white/15 text-white hover:bg-white/25"
+            }`}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </button>
+
+          {jobs.length > 0 && (
+            <div className="w-5 h-px bg-white/15 my-0.5" />
+          )}
+
+          {/* Job icons */}
+          {jobs.map((job) => (
+            <button
+              key={job.id}
+              type="button"
+              onClick={() => onSelectJob(job.id)}
+              title={`${job.company || "Untitled"} — ${job.role}`}
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${ICON_COLORS[job.status]} ${
+                activeJobId === job.id ? "ring-2 ring-white ring-offset-1 ring-offset-[#1b2a4a]" : ""
+              }`}
+            >
+              {(job.company?.[0] || "?").toUpperCase()}
+            </button>
+          ))}
+        </div>
+
+        {/* Add job */}
+        <div className="p-1.5 border-t border-white/10 shrink-0">
+          <button
+            type="button"
+            onClick={() => { onToggle(); setView("create"); }}
+            title="Add job"
+            className="w-8 h-8 rounded-lg bg-white/15 text-white hover:bg-white/25 flex items-center justify-center mx-auto transition-all"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
           </button>
         </div>
+      </div>
+    );
+  }
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto">
-          {view === "list" && (
-            <div className="p-4">
-              {/* General option */}
-              <div
-                className={`border rounded-xl p-3 mb-3 cursor-pointer transition-all duration-150 ${
-                  activeJobId === null
-                    ? "border-[#1b2a4a] bg-[#1b2a4a]/5"
-                    : "border-gray-200 bg-white hover:border-gray-300"
-                }`}
-                onClick={() => onSelectJob(null)}
-              >
-                <div className="font-semibold text-sm text-gray-800">General CV</div>
-                <div className="text-xs text-gray-500">Default, non-job-specific versions</div>
-              </div>
+  // ── Expanded panel ───────────────────────────────────────────
 
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-                Jobs ({jobs.length})
-              </div>
-
-              {jobs.length === 0 && (
-                <p className="text-xs text-gray-400 text-center py-6">No jobs yet. Add one below.</p>
-              )}
-
-              {jobs.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  active={activeJobId === job.id}
-                  onSelect={() => handleSelectJob(job.id)}
-                  onDelete={() => handleDelete(job.id)}
-                />
-              ))}
-            </div>
-          )}
-
-          {view === "create" && (
-            <CreateJobForm
-              onCreated={handleJobCreated}
-              onCancel={() => setView("list")}
-            />
-          )}
-
-          {view === "detail" && selectedJob && (
-            <JobDetailView
-              job={selectedJob}
-              active={activeJobId === selectedJob.id}
-              onActivate={() => onSelectJob(selectedJob.id)}
-              onJobUpdated={(updated) => {
-                setSelectedJob(updated);
-                onJobsChanged();
-              }}
-            />
-          )}
-        </div>
-
-        {/* Footer - Add Job button in list view */}
-        {view === "list" && (
-          <div className="p-4 border-t border-gray-100 shrink-0">
+  return (
+    <div className="hidden lg:flex flex-col w-[280px] shrink-0 bg-white border-r border-gray-200 h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between px-3 py-3 border-b border-gray-200 shrink-0 h-12">
+        <div className="flex items-center gap-2">
+          {view !== "list" && (
             <button
               type="button"
-              onClick={() => setView("create")}
-              className="w-full py-2 border-2 border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:border-[#1b2a4a] hover:text-[#1b2a4a] transition-colors flex items-center justify-center gap-1.5"
+              onClick={() => { setView("list"); setSelectedJob(null); }}
+              className="text-gray-400 hover:text-gray-600"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
-              Add Job
             </button>
+          )}
+          <h2 className="font-semibold text-gray-800 text-sm">
+            {view === "list" ? "Jobs" : view === "create" ? "New Job" : selectedJob?.company || "Job Detail"}
+          </h2>
+        </div>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="text-gray-400 hover:text-gray-600"
+          title="Collapse"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        {view === "list" && (
+          <div className="p-4">
+            {/* General option */}
+            <div
+              className={`border rounded-xl p-3 mb-3 cursor-pointer transition-all duration-150 ${
+                activeJobId === null
+                  ? "border-[#1b2a4a] bg-[#1b2a4a]/5"
+                  : "border-gray-200 bg-white hover:border-gray-300"
+              }`}
+              onClick={() => onSelectJob(null)}
+            >
+              <div className="font-semibold text-sm text-gray-800">General CV</div>
+              <div className="text-xs text-gray-500">Default, non-job-specific versions</div>
+            </div>
+
+            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+              Jobs ({jobs.length})
+            </div>
+
+            {jobs.length === 0 && (
+              <p className="text-xs text-gray-400 text-center py-6">No jobs yet. Add one below.</p>
+            )}
+
+            {jobs.map((job) => (
+              <JobCard
+                key={job.id}
+                job={job}
+                active={activeJobId === job.id}
+                onSelect={() => handleSelectJob(job.id)}
+                onDelete={() => handleDelete(job.id)}
+              />
+            ))}
           </div>
         )}
+
+        {view === "create" && (
+          <CreateJobForm
+            onCreated={handleJobCreated}
+            onCancel={() => setView("list")}
+          />
+        )}
+
+        {view === "detail" && selectedJob && (
+          <JobDetailView
+            job={selectedJob}
+            active={activeJobId === selectedJob.id}
+            onActivate={() => onSelectJob(selectedJob.id)}
+            onJobUpdated={(updated) => {
+              setSelectedJob(updated);
+              onJobsChanged();
+            }}
+          />
+        )}
       </div>
-    </>
+
+      {/* Footer — Add Job */}
+      {view === "list" && (
+        <div className="p-3 border-t border-gray-100 shrink-0">
+          <button
+            type="button"
+            onClick={() => setView("create")}
+            className="w-full py-2 border-2 border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:border-[#1b2a4a] hover:text-[#1b2a4a] transition-colors flex items-center justify-center gap-1.5"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Job
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
