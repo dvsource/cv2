@@ -24,7 +24,7 @@ RUN cd web && npm ci
 COPY server.py build_cv.py db.py llm.py ./
 COPY web/ ./web/
 
-EXPOSE 5000 5173
+EXPOSE 5000 5200
 
 # Flask debug=True gives Werkzeug auto-reload on .py changes.
 # Vite dev server gives HMR on web/src changes.

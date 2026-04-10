@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "5000:5000"   # Flask API (also accessible directly)
-      - "5173:5173"   # Vite dev server with HMR — use this for the UI
+      - "5200:5200"   # Vite dev server with HMR — use this for the UI
     volumes:
       - ./cv.json:/app/cv.json
       - cv-db:/app/db-data

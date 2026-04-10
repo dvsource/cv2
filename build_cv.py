@@ -321,7 +321,7 @@ def build_experience(experience: list, styles: dict, content_width: float, opts:
             title = esc(role["title"])
             period = esc(format_period(role.get("period", {}), opts))
 
-            title_p = Paragraph(f"<b>{company} \u2014 {title}</b>", styles["exp_title"])
+            title_p = Paragraph(f"<b>{company} - {title}</b>", styles["exp_title"])
             date_p = Paragraph(period, styles["exp_date"])
 
             date_w = 40 * mm
@@ -524,6 +524,10 @@ def build_pdf(data: dict, output_path: str):
         builder = SECTION_BUILDERS.get(key)
         if builder:
             story.extend(builder(data, styles, content_width))
+
+    # Strip trailing PageBreaks to avoid a blank last page
+    while story and isinstance(story[-1], PageBreak):
+        story.pop()
 
     doc = BaseDocTemplate(
         output_path,
