@@ -27,8 +27,10 @@ fi
 
 echo "New commits detected: $BEFORE → $AFTER"
 
-# Check if frontend files changed
-if git diff --name-only "$BEFORE" "$AFTER" | grep -q "^web/"; then
+CHANGED=$(git diff --name-only "$BEFORE" "$AFTER")
+
+# Rebuild frontend if web/ files changed
+if echo "$CHANGED" | grep -q "^web/"; then
   echo "Frontend changed. Rebuilding..."
   cd "$APP_DIR/web"
   npm ci
@@ -37,6 +39,22 @@ if git diff --name-only "$BEFORE" "$AFTER" | grep -q "^web/"; then
   echo "Frontend build done."
 else
   echo "No frontend changes. Skipping npm build."
+fi
+
+# Reinstall Python deps if requirements changed
+if echo "$CHANGED" | grep -q "^requirements.txt"; then
+  echo "requirements.txt changed. Reinstalling..."
+  pip3 install --user -r requirements.txt
+  echo "Python deps updated."
+fi
+
+# Restart gunicorn if any Python source files changed
+if echo "$CHANGED" | grep -qE "^(server|build_cv|db|llm)\.py$|^requirements\.txt$"; then
+  echo "Python source changed. Restarting gunicorn..."
+  sudo systemctl restart cv-editor
+  echo "gunicorn restarted."
+else
+  echo "No Python source changes. Skipping gunicorn restart."
 fi
 
 echo "=== Deploy finished: $(date) ==="
